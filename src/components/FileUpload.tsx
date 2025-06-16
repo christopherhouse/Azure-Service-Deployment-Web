@@ -26,16 +26,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="file-upload-container">
-      <h3>📁 Upload Bicep Files</h3>
+      <h3>📁 Upload ARM Template Files</h3>
       
       <div className="file-input-group">
         <label htmlFor="template-file" className="file-label">
-          📄 Bicep Template (.bicep)
+          📄 ARM Template (.json)
         </label>
         <input
           id="template-file"
           type="file"
-          accept=".bicep,.json"
+          accept=".json"
           onChange={handleTemplateFileChange}
           className="file-input"
         />
@@ -48,12 +48,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       <div className="file-input-group">
         <label htmlFor="parameters-file" className="file-label">
-          ⚙️ Parameters File (.bicepparam or .json)
+          ⚙️ Parameters File (.json)
         </label>
         <input
           id="parameters-file"
           type="file"
-          accept=".bicepparam,.json"
+          accept=".json"
           onChange={handleParametersFileChange}
           className="file-input"
         />

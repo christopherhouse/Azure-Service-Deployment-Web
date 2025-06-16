@@ -22,7 +22,7 @@ const AppContent: React.FC = () => {
 
   const generateDeploymentName = () => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    return `bicep-deployment-${timestamp}`;
+    return `arm-deployment-${timestamp}`;
   };
 
   const parseFile = async (file: File): Promise<any> => {
@@ -81,8 +81,8 @@ const AppContent: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🚀 Azure Bicep Deployment Tool</h1>
-        <p>Deploy Azure resources using Bicep templates</p>
+        <h1>🚀 Azure ARM Template Deployment Tool</h1>
+        <p>Deploy Azure resources using ARM templates</p>
       </header>
       
       <main className="App-main">

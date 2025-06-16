@@ -25,8 +25,8 @@ jest.mock('./hooks/useAzureCredential', () => ({
 
 import App from './App';
 
-test('renders Azure Bicep Deployment Tool', () => {
+test('renders Azure ARM Template Deployment Tool', () => {
   render(<App />);
-  const titleElement = screen.getByText(/Azure Bicep Deployment Tool/i);
+  const titleElement = screen.getByText(/Azure ARM Template Deployment Tool/i);
   expect(titleElement).toBeInTheDocument();
 });

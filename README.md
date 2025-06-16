@@ -1,10 +1,10 @@
-# Azure Bicep Deployment Web App
+# Azure ARM Template Deployment Web App
 
-A React web application that enables you to deploy Azure resources by uploading Bicep templates and parameter files through a user-friendly interface.
+A React web application that enables you to deploy Azure resources by uploading ARM templates and parameter files through a user-friendly interface.
 
 ## 🚀 Features
 
-- **File Upload Interface**: Upload Bicep templates (.bicep) and parameter files (.bicepparam or .json)
+- **File Upload Interface**: Upload ARM templates (.json) and parameter files (.json)
 - **Azure Authentication**: Secure authentication using Microsoft Entra ID (Azure AD) with OAuth 2.0 auth code flow
 - **Real-time Deployment Status**: Visual feedback during deployment with loading indicators
 - **Success/Error Handling**: Clear success messages with emojis and detailed error reporting
@@ -31,7 +31,7 @@ npm install
 
 1. Go to [Azure Portal](https://portal.azure.com) → Azure Active Directory → App registrations
 2. Click "New registration"
-3. Set application name (e.g., "Bicep Deployment Tool")
+3. Set application name (e.g., "ARM Template Deployment Tool")
 4. Set redirect URI: `http://localhost:3000` (for development)
 5. Note the **Application (client) ID** and **Directory (tenant) ID**
 
@@ -63,8 +63,8 @@ The app will be available at `http://localhost:3000`
 
 1. **Sign In**: Click "Sign in with Microsoft" to authenticate with your Azure account
 2. **Upload Files**: 
-   - Select your Bicep template file (.bicep or .json)
-   - Select your parameters file (.bicepparam or .json)
+   - Select your ARM template file (.json)
+   - Select your parameters file (.json)
 3. **Deploy**: Click "Deploy to Azure" to start the deployment
 4. **Monitor**: Watch the real-time status indicator during deployment
 5. **Results**: View success message with emojis or detailed error information
@@ -96,7 +96,7 @@ To support additional file types, modify the `accept` attribute in `FileUpload.t
 // In src/components/FileUpload.tsx
 <input
   type="file"
-  accept=".bicep,.json,.yaml,.yml"  // Add new extensions
+  accept=".json,.yaml,.yml"  // Add new extensions
   onChange={handleTemplateFileChange}
 />
 ```
@@ -195,7 +195,7 @@ The build artifacts will be in the `build/` directory, ready for deployment to a
 2. **Deployment Fails**
    - Verify subscription ID and resource group exist
    - Check Azure permissions for the authenticated user
-   - Validate Bicep template syntax
+   - Validate ARM template syntax
 
 3. **Build Errors**
    - Clear node_modules: `rm -rf node_modules package-lock.json && npm install`
@@ -221,7 +221,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🔗 Related Links
 
-- [Azure Bicep Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/)
+- [Azure ARM Templates Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/)
 - [MSAL.js Documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications)
 - [Azure Resource Manager SDK](https://docs.microsoft.com/en-us/javascript/api/@azure/arm-resources/)
 

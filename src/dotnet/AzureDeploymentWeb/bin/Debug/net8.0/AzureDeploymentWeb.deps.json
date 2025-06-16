@@ -10,7 +10,8 @@
         "dependencies": {
           "Azure.Identity": "1.13.1",
           "Azure.ResourceManager": "1.12.0",
-          "Microsoft.Identity.Web": "3.4.0"
+          "Microsoft.Identity.Web": "3.4.0",
+          "Microsoft.Identity.Web.UI": "3.4.0"
         },
         "runtime": {
           "AzureDeploymentWeb.dll": {}
@@ -391,6 +392,17 @@
         },
         "runtime": {
           "lib/net8.0/Microsoft.Identity.Web.TokenCache.dll": {
+            "assemblyVersion": "3.4.0.0",
+            "fileVersion": "3.4.0.0"
+          }
+        }
+      },
+      "Microsoft.Identity.Web.UI/3.4.0": {
+        "dependencies": {
+          "Microsoft.Identity.Web": "3.4.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Identity.Web.UI.dll": {
             "assemblyVersion": "3.4.0.0",
             "fileVersion": "3.4.0.0"
           }
@@ -817,6 +829,13 @@
       "sha512": "sha512-b51TYn0IvpKBKvwcxkIhZwAn+mlhcxFsmw5k2joZ4dH9v2HQnjWO5BjlFMZ0pxEOgf9HPltwEmcM6rLb6TxCfQ==",
       "path": "microsoft.identity.web.tokencache/3.4.0",
       "hashPath": "microsoft.identity.web.tokencache.3.4.0.nupkg.sha512"
+    },
+    "Microsoft.Identity.Web.UI/3.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-J4ukrTcdnQoRBTZDogTVOm6l8ExBH+0487BLcftAP8Q3KMf9Vv7i1X7CjE65q/4F+M012HoPlN9GIxt1r6crNw==",
+      "path": "microsoft.identity.web.ui/3.4.0",
+      "hashPath": "microsoft.identity.web.ui.3.4.0.nupkg.sha512"
     },
     "Microsoft.IdentityModel.Abstractions/8.2.1": {
       "type": "package",

@@ -672,6 +672,25 @@
           }
         }
       },
+      "Microsoft.Identity.Web.UI/3.4.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Identity.Web": "3.4.0"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.Identity.Web.UI.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Identity.Web.UI.dll": {
+            "related": ".xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "Microsoft.IdentityModel.Abstractions/8.2.1": {
         "type": "package",
         "compile": {
@@ -1952,6 +1971,27 @@
         "microsoft.identity.web.tokencache.nuspec"
       ]
     },
+    "Microsoft.Identity.Web.UI/3.4.0": {
+      "sha512": "J4ukrTcdnQoRBTZDogTVOm6l8ExBH+0487BLcftAP8Q3KMf9Vv7i1X7CjE65q/4F+M012HoPlN9GIxt1r6crNw==",
+      "type": "package",
+      "path": "microsoft.identity.web.ui/3.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "lib/net6.0/Microsoft.Identity.Web.UI.dll",
+        "lib/net6.0/Microsoft.Identity.Web.UI.xml",
+        "lib/net7.0/Microsoft.Identity.Web.UI.dll",
+        "lib/net7.0/Microsoft.Identity.Web.UI.xml",
+        "lib/net8.0/Microsoft.Identity.Web.UI.dll",
+        "lib/net8.0/Microsoft.Identity.Web.UI.xml",
+        "lib/net9.0/Microsoft.Identity.Web.UI.dll",
+        "lib/net9.0/Microsoft.Identity.Web.UI.xml",
+        "microsoft.identity.web.ui.3.4.0.nupkg.sha512",
+        "microsoft.identity.web.ui.nuspec"
+      ]
+    },
     "Microsoft.IdentityModel.Abstractions/8.2.1": {
       "sha512": "8sMlmHhh5HdP3+yCSCUpJpN1yYrJ6J/V39df9siY8PeMckRMrSBRL/TMs/Jex6P1ly/Ie2mFqvhcPHHrNmCd/w==",
       "type": "package",
@@ -2600,7 +2640,8 @@
     "net8.0": [
       "Azure.Identity >= 1.13.1",
       "Azure.ResourceManager >= 1.12.0",
-      "Microsoft.Identity.Web >= 3.4.0"
+      "Microsoft.Identity.Web >= 3.4.0",
+      "Microsoft.Identity.Web.UI >= 3.4.0"
     ]
   },
   "packageFolders": {
@@ -2649,6 +2690,10 @@
             "version": "[1.12.0, )"
           },
           "Microsoft.Identity.Web": {
+            "target": "Package",
+            "version": "[3.4.0, )"
+          },
+          "Microsoft.Identity.Web.UI": {
             "target": "Package",
             "version": "[3.4.0, )"
           }

@@ -49,6 +49,10 @@
             "Microsoft.Identity.Web": {
               "target": "Package",
               "version": "[3.4.0, )"
+            },
+            "Microsoft.Identity.Web.UI": {
+              "target": "Package",
+              "version": "[3.4.0, )"
             }
           },
           "imports": [

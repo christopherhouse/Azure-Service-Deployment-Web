@@ -70,3 +70,5 @@
 /home/runner/work/Azure-Service-Deployment-Web/Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb/obj/Debug/net8.0/AzureDeploymentWeb.csproj.AssemblyReference.cache
 /home/runner/work/Azure-Service-Deployment-Web/Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb/obj/Debug/net8.0/AzureDeploymentWeb.MvcApplicationPartsAssemblyInfo.cs
 /home/runner/work/Azure-Service-Deployment-Web/Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb/obj/Debug/net8.0/AzureDeploymentWeb.csproj.CopyComplete
+/home/runner/work/Azure-Service-Deployment-Web/Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb/bin/Debug/net8.0/Microsoft.Identity.Web.UI.dll
+/home/runner/work/Azure-Service-Deployment-Web/Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb/bin/Debug/net8.0/appsettings.example.json

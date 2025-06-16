@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "HZXQj2HHrfX9Y+G33K6K979SLvnA/J8vYkMUcSz7TgF15VJZmcsqDhdRZZV2BJJfxYEMRXjbUHKZ0Ix3jteW2A==",
+  "dgSpecHash": "dbX45QJBDd4vlH026iNWlcU7XbJENJjvRpWSsiqbmaS3VifD5Vl0wXm956tpjgG1vSgEkGMN0EcJEz/D5qHYqg==",
   "success": true,
   "projectFilePath": "/home/runner/work/Azure-Service-Deployment-Web/Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb/AzureDeploymentWeb.csproj",
   "expectedPackageFiles": [
@@ -39,6 +39,7 @@
     "/home/runner/.nuget/packages/microsoft.identity.web.diagnostics/3.4.0/microsoft.identity.web.diagnostics.3.4.0.nupkg.sha512",
     "/home/runner/.nuget/packages/microsoft.identity.web.tokenacquisition/3.4.0/microsoft.identity.web.tokenacquisition.3.4.0.nupkg.sha512",
     "/home/runner/.nuget/packages/microsoft.identity.web.tokencache/3.4.0/microsoft.identity.web.tokencache.3.4.0.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.identity.web.ui/3.4.0/microsoft.identity.web.ui.3.4.0.nupkg.sha512",
     "/home/runner/.nuget/packages/microsoft.identitymodel.abstractions/8.2.1/microsoft.identitymodel.abstractions.8.2.1.nupkg.sha512",
     "/home/runner/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.2.1/microsoft.identitymodel.jsonwebtokens.8.2.1.nupkg.sha512",
     "/home/runner/.nuget/packages/microsoft.identitymodel.logging/8.2.1/microsoft.identitymodel.logging.8.2.1.nupkg.sha512",

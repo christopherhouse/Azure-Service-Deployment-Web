@@ -1,7 +1,17 @@
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using AzureDeploymentWeb.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
+
+builder.Services.AddControllersWithViews()
+    .AddMicrosoftIdentityUI();
+
+// Register Azure deployment service
+builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 
 var app = builder.Build();
 
@@ -18,6 +28,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

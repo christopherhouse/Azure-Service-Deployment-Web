@@ -1,8 +1,56 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Azure ARM Template Deployment Tool";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="deployment-tool-header">
+    <h1 class="display-4">🚀 Azure ARM Template Deployment Tool</h1>
+    <p class="lead">Deploy Azure resources using ARM templates</p>
+</div>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Welcome, @User.Identity.Name!</h5>
+                    <p class="card-text">You are authenticated and ready to deploy ARM templates to Azure.</p>
+                    <a asp-controller="Deployment" asp-action="Index" class="btn btn-primary btn-lg">
+                        🚀 Start Deployment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">🔐 Authentication Required</h5>
+                    <p class="card-text">Please sign in with your Microsoft account to access the ARM template deployment tool.</p>
+                    <a asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn" class="btn btn-primary btn-lg">
+                        Sign in with Microsoft
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <h3>📁 File Upload</h3>
+        <p>Upload ARM templates (.json) and parameter files (.json) through a user-friendly interface.</p>
+    </div>
+    <div class="col-md-4">
+        <h3>🔒 Azure Authentication</h3>
+        <p>Secure authentication using Microsoft Entra ID (Azure AD) with OAuth 2.0 auth code flow.</p>
+    </div>
+    <div class="col-md-4">
+        <h3>📊 Real-time Status</h3>
+        <p>Visual feedback during deployment with loading indicators and detailed error reporting.</p>
+    </div>
 </div>

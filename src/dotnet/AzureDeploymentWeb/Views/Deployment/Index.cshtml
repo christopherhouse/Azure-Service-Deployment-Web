@@ -1,0 +1,100 @@
+@model AzureDeploymentWeb.Models.DeploymentViewModel
+@{
+    ViewData["Title"] = "Deploy ARM Template";
+}
+
+<div class="deployment-tool-header">
+    <h1 class="display-4">🚀 Azure ARM Template Deployment Tool</h1>
+    <p class="lead">Deploy Azure resources using ARM templates</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="file-upload-section">
+            <h3>📁 Upload ARM Template Files</h3>
+            
+            <form asp-action="Deploy" method="post" enctype="multipart/form-data" id="deploymentForm">
+                @Html.AntiForgeryToken()
+                
+                <div class="mb-3">
+                    <label asp-for="TemplateFile" class="form-label">📄 ARM Template (.json)</label>
+                    <input asp-for="TemplateFile" type="file" class="form-control" accept=".json" required />
+                    <span asp-validation-for="TemplateFile" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ParametersFile" class="form-label">⚙️ Parameters File (.json)</label>
+                    <input asp-for="ParametersFile" type="file" class="form-control" accept=".json" required />
+                    <span asp-validation-for="ParametersFile" class="text-danger"></span>
+                </div>
+
+                <div class="deployment-info mb-3">
+                    <p><strong>Target Subscription:</strong> @(Model.SubscriptionId ?? "Not configured")</p>
+                    <p><strong>Target Resource Group:</strong> @(Model.ResourceGroup ?? "Not configured")</p>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" id="deployButton">
+                    🚀 Deploy to Azure
+                </button>
+            </form>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.DeploymentStatus))
+        {
+            <div class="status-@Model.DeploymentStatus" id="deploymentStatus">
+                @if (Model.DeploymentStatus == "success")
+                {
+                    <h4>🎉 Deployment Successful! ✨</h4>
+                    <p>🎊 Your Azure resources have been deployed successfully! 🎊</p>
+                    <p><strong>Resource Group:</strong> @Model.ResourceGroup</p>
+                    <p><strong>Deployment:</strong> @Model.DeploymentName</p>
+                    @if (!string.IsNullOrEmpty(Model.DeploymentMessage))
+                    {
+                        <p>@Model.DeploymentMessage</p>
+                    }
+                }
+                else if (Model.DeploymentStatus == "error")
+                {
+                    <h4>🛑 Deployment Failed</h4>
+                    <p>❌ There was an error deploying your resources.</p>
+                    <p><strong>Resource Group:</strong> @Model.ResourceGroup</p>
+                    @if (!string.IsNullOrEmpty(Model.DeploymentName))
+                    {
+                        <p><strong>Deployment:</strong> @Model.DeploymentName</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.DeploymentMessage))
+                    {
+                        <div class="mt-2">
+                            <strong>Error Details:</strong>
+                            <pre class="mt-1">@Model.DeploymentMessage</pre>
+                        </div>
+                    }
+                }
+                else if (Model.DeploymentStatus == "running")
+                {
+                    <div class="d-flex align-items-center">
+                        <div class="spinner me-3"></div>
+                        <div>
+                            <h4>🚀 Deployment in Progress</h4>
+                            <p>Deploying to resource group: <strong>@Model.ResourceGroup</strong></p>
+                            <p>Deployment name: <strong>@Model.DeploymentName</strong></p>
+                            <p>Please wait while we deploy your resources...</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            $('#deploymentForm').on('submit', function() {
+                $('#deployButton').prop('disabled', true).html('<span class="spinner me-2"></span>⏳ Deploying...');
+            });
+        });
+    </script>
+}

@@ -1,0 +1,76 @@
+.status-container {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid;
+}
+
+.status-running {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1565c0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-success {
+  background: #e8f5e8;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.status-error {
+  background: #ffebee;
+  border-color: #f44336;
+  color: #c62828;
+}
+
+.status-content h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+}
+
+.status-content p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e3f2fd;
+  border-top: 4px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.success-message {
+  background: #c8e6c9;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  border: 1px solid #a5d6a7;
+}
+
+.error-message {
+  background: #ffcdd2;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  border: 1px solid #ef9a9a;
+}
+
+.error-message pre {
+  margin: 8px 0 0 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 0.85rem;
+  font-family: 'Courier New', monospace;
+}

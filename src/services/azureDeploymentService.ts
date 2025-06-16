@@ -31,12 +31,30 @@ export class AzureDeploymentService {
     this.client = new ResourceManagementClient(credential, this.subscriptionId);
   }
 
+  /**
+   * Extracts actual parameter values from ARM parameter file structure.
+   * Handles both full ARM parameter files (with $schema, contentVersion, parameters)
+   * and direct parameter objects.
+   */
+  private extractParameters(parameters: any): any {
+    // If the parameters object has a 'parameters' property, it's a full ARM parameter file
+    if (parameters && typeof parameters === 'object' && parameters.parameters) {
+      return parameters.parameters;
+    }
+    
+    // Otherwise, assume it's already in the correct format
+    return parameters;
+  }
+
   async deployTemplate(params: DeploymentParams): Promise<DeploymentResult> {
     try {
+      // Extract actual parameters from ARM parameter file structure if needed
+      const actualParameters = this.extractParameters(params.parameters);
+      
       const deploymentParameters: Deployment = {
         properties: {
           template: params.template,
-          parameters: params.parameters,
+          parameters: actualParameters,
           mode: "Incremental",
         },
       };

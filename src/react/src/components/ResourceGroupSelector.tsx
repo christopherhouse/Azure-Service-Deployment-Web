@@ -78,33 +78,35 @@ export const ResourceGroupSelector: React.FC<ResourceGroupSelectorProps> = ({
         <strong>📁 Select Resource Group:</strong>
       </label>
       
-      {loading && (
-        <div className="loading-indicator">
-          ⏳ Loading resource groups...
-        </div>
-      )}
-      
-      {error && (
-        <div className="error-message">
-          ❌ {error}
-        </div>
-      )}
-      
-      {!loading && !error && (
+      <div className="resource-group-dropdown-container">
         <select
           id="resource-group-select"
           value={selectedResourceGroupName || ''}
           onChange={handleResourceGroupChange}
           className="resource-group-dropdown"
-          disabled={resourceGroups.length === 0}
+          disabled={loading || resourceGroups.length === 0}
         >
-          <option value="">Select a resource group...</option>
-          {resourceGroups.map((resourceGroup) => (
+          <option value="">
+            {loading ? 'Loading resource groups...' : 'Select a resource group...'}
+          </option>
+          {!loading && resourceGroups.map((resourceGroup) => (
             <option key={resourceGroup.name} value={resourceGroup.name}>
               {resourceGroup.name} ({resourceGroup.location})
             </option>
           ))}
         </select>
+        
+        {loading && (
+          <div className="resource-group-loading-overlay">
+            <div className="resource-group-spinner"></div>
+          </div>
+        )}
+      </div>
+      
+      {error && (
+        <div className="error-message">
+          ❌ {error}
+        </div>
       )}
       
       {!loading && !error && resourceGroups.length === 0 && (

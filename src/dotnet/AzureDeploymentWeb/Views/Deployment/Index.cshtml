@@ -34,9 +34,17 @@
 
                 <div class="mb-3">
                     <label asp-for="SelectedResourceGroupName" class="form-label">📁 Select Resource Group</label>
-                    <select asp-for="SelectedResourceGroupName" class="form-select" id="resourceGroupSelect" required disabled>
-                        <option value="">Please select a subscription first</option>
-                    </select>
+                    <div class="position-relative">
+                        <select asp-for="SelectedResourceGroupName" class="form-select" id="resourceGroupSelect" required disabled>
+                            <option value="">Please select a subscription first</option>
+                        </select>
+                        <div id="resourceGroupLoadingIndicator" class="resource-group-loading-overlay" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <span class="spinner me-2"></span>
+                                <span>Loading resource groups...</span>
+                            </div>
+                        </div>
+                    </div>
                     <span asp-validation-for="SelectedResourceGroupName" class="text-danger"></span>
                 </div>
 
@@ -196,7 +204,11 @@
         
         function loadResourceGroups(subscriptionId) {
             const resourceGroupSelect = $('#resourceGroupSelect');
-            resourceGroupSelect.prop('disabled', true).empty().append('<option value="">Loading...</option>');
+            const loadingIndicator = $('#resourceGroupLoadingIndicator');
+            
+            // Show loading overlay and disable dropdown
+            loadingIndicator.show();
+            resourceGroupSelect.prop('disabled', true).empty().append('<option value="">Loading resource groups...</option>');
             
             fetch(`/api/AzureResources/resourcegroups/${subscriptionId}`)
                 .then(response => response.json())
@@ -215,6 +227,10 @@
                 .catch(error => {
                     console.error('Error loading resource groups:', error);
                     resourceGroupSelect.empty().append('<option value="">Error loading resource groups</option>');
+                })
+                .finally(() => {
+                    // Hide loading overlay
+                    loadingIndicator.hide();
                 });
         }
         

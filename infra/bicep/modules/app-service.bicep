@@ -23,14 +23,23 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   tags: tags
   sku: {
     name: 'P0v3'
-    tier: 'PremiumV3'
+    tier: 'Premium0V3'
     size: 'P0v3'
     family: 'Pv3'
     capacity: 1
   }
   kind: 'linux'
   properties: {
-    reserved: true // Required for Linux plans
+    perSiteScaling: false
+    elasticScaleEnabled: false
+    maximumElasticWorkerCount: 1
+    isSpot: false
+    reserved: true
+    isXenon: false
+    hyperV: false
+    targetWorkerCount: 0
+    targetWorkerSizeId: 0
+    zoneRedundant: false
   }
 }
 
@@ -46,7 +55,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     serverFarmId: appServicePlan.id
     reserved: true // Required for Linux
     siteConfig: {
-      linuxFxVersion: 'DOTNETCORE|8.0'
+      linuxFxVersion: 'DOTNET|8.0'
       alwaysOn: true
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'

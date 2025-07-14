@@ -17,7 +17,7 @@ param logAnalyticsWorkspaceId string
 param tenantId string = tenant().tenantId
 
 // Generate unique name following Azure Well-Architected Framework naming convention
-var keyVaultName = 'kv-${workloadName}-${environmentName}-${uniqueString(resourceGroup().id)}'
+var keyVaultName = 'kv-${workloadName}-${environmentName}'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   name: keyVaultName

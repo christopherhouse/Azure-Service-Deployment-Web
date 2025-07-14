@@ -3,7 +3,7 @@ using '../main.bicep'
 // Required parameters
 param workloadName = 'azdeployment'
 param environmentName = 'dev'
-param location = 'East US 2'
+param location = 'eastus2'
 
 // Optional parameters with example values
 param logAnalyticsRetentionInDays = 90

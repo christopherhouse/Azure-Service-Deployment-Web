@@ -40,8 +40,10 @@ export class AzureResourceDiscoveryService {
         }
       }
 
-      // Filter to only enabled subscriptions
-      return subscriptions.filter(sub => sub.state === 'Enabled');
+      // Filter to only enabled subscriptions and sort alphabetically by display name
+      return subscriptions
+        .filter(sub => sub.state === 'Enabled')
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
     } catch (error) {
       console.error("Failed to get subscriptions:", error);
       throw new Error(`Failed to retrieve subscriptions: ${error instanceof Error ? error.message : 'Unknown error'}`);

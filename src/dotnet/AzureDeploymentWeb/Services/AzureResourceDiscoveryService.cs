@@ -62,7 +62,8 @@ namespace AzureDeploymentWeb.Services
                     var cachedSubscriptions = JsonSerializer.Deserialize<List<SubscriptionInfo>>(cachedData);
                     if (cachedSubscriptions != null)
                     {
-                        return cachedSubscriptions;
+                        // Ensure cached data is also sorted
+                        return cachedSubscriptions.OrderBy(s => s.DisplayName).ToList();
                     }
                 }
             }
@@ -86,24 +87,27 @@ namespace AzureDeploymentWeb.Services
                     });
                 }
 
+                // Sort subscriptions alphabetically by display name
+                var sortedSubscriptions = subscriptions.OrderBy(s => s.DisplayName).ToList();
+
                 // Cache the result
                 try
                 {
-                    var cacheData = JsonSerializer.Serialize(subscriptions);
+                    var cacheData = JsonSerializer.Serialize(sortedSubscriptions);
                     var cacheOptions = new DistributedCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.SubscriptionsCacheDurationMinutes)
                     };
                     await _cache.SetStringAsync(SubscriptionsCacheKey, cacheData, cacheOptions);
                     _logger.LogInformation("Cached {Count} subscriptions for {Duration} minutes", 
-                        subscriptions.Count, _cacheOptions.SubscriptionsCacheDurationMinutes);
+                        sortedSubscriptions.Count, _cacheOptions.SubscriptionsCacheDurationMinutes);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to cache subscriptions");
                 }
 
-                return subscriptions;
+                return sortedSubscriptions;
             }
             catch (Exception ex)
             {
@@ -132,7 +136,8 @@ namespace AzureDeploymentWeb.Services
                     var cachedResourceGroups = JsonSerializer.Deserialize<List<ResourceGroupInfo>>(cachedData);
                     if (cachedResourceGroups != null)
                     {
-                        return cachedResourceGroups;
+                        // Ensure cached data is also sorted
+                        return cachedResourceGroups.OrderBy(rg => rg.Name).ToList();
                     }
                 }
             }
@@ -158,24 +163,27 @@ namespace AzureDeploymentWeb.Services
                     });
                 }
 
+                // Sort resource groups alphabetically by name
+                var sortedResourceGroups = resourceGroups.OrderBy(rg => rg.Name).ToList();
+
                 // Cache the result
                 try
                 {
-                    var cacheData = JsonSerializer.Serialize(resourceGroups);
+                    var cacheData = JsonSerializer.Serialize(sortedResourceGroups);
                     var cacheOptions = new DistributedCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.ResourceGroupsCacheDurationMinutes)
                     };
                     await _cache.SetStringAsync(cacheKey, cacheData, cacheOptions);
                     _logger.LogInformation("Cached {Count} resource groups for subscription {SubscriptionId} for {Duration} minutes", 
-                        resourceGroups.Count, subscriptionId, _cacheOptions.ResourceGroupsCacheDurationMinutes);
+                        sortedResourceGroups.Count, subscriptionId, _cacheOptions.ResourceGroupsCacheDurationMinutes);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to cache resource groups for subscription {SubscriptionId}", subscriptionId);
                 }
 
-                return resourceGroups;
+                return sortedResourceGroups;
             }
             catch (Exception ex)
             {

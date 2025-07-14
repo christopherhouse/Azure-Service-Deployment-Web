@@ -1,6 +1,9 @@
-# Azure ARM Template Deployment Web App
+# Azure Service Deployment Web
 
-A React web application that enables you to deploy Azure resources by uploading ARM templates and parameter files through a user-friendly interface.
+A full-stack web application that enables you to deploy Azure resources through multiple interfaces:
+- **React Frontend**: Upload ARM templates and parameter files through a user-friendly interface
+- **.NET 8 MVC Backend**: API and web interface for Azure resource management
+- **GitHub Actions**: Automated CI/CD deployment pipeline for infrastructure and applications
 
 ## 🚀 Features
 
@@ -9,22 +12,75 @@ A React web application that enables you to deploy Azure resources by uploading 
 - **Real-time Deployment Status**: Visual feedback during deployment with loading indicators
 - **Success/Error Handling**: Clear success messages with emojis and detailed error reporting
 - **Environment Configuration**: Easy configuration through environment variables
+- **.NET 8 MVC Backend**: Robust API and web interface built with ASP.NET Core
+- **Bicep Infrastructure**: Infrastructure as Code using Azure Bicep templates
+- **GitHub Actions CI/CD**: Automated deployment pipeline with federated credentials
 
 ## 📋 Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ and npm (for React frontend)
+- .NET 8 SDK (for backend development)
 - Azure subscription
 - Azure AD app registration for authentication
 - Resource group for deploying resources
+- Azure service principal with federated credentials (for GitHub Actions)
 
 ## 🛠️ Setup Instructions
+
+### Option 1: GitHub Actions Deployment (Recommended)
+
+This repository includes a GitHub Actions workflow that automatically builds and deploys both the infrastructure and application.
+
+#### Azure Setup for GitHub Actions
+
+1. **Create Azure Service Principal with OIDC**:
+   ```bash
+   # Create a service principal
+   az ad sp create-for-rbac --name "GitHub-Actions-OIDC" --role contributor --scopes /subscriptions/{subscription-id} --json-auth
+   
+   # Create federated credentials for GitHub Actions
+   az ad app federated-credential create --id {app-id} --parameters '{
+     "name": "GitHub-Actions",
+     "issuer": "https://token.actions.githubusercontent.com",
+     "subject": "repo:{your-github-username}/{your-repo-name}:ref:refs/heads/main",
+     "description": "GitHub Actions OIDC",
+     "audiences": ["api://AzureADTokenExchange"]
+   }'
+   ```
+
+2. **Configure GitHub Repository Secrets**:
+   - `AZURE_CLIENT_ID`: Application (client) ID of the service principal
+   - `AZURE_TENANT_ID`: Directory (tenant) ID
+   - `AZURE_SUBSCRIPTION_ID`: Your Azure subscription ID
+
+3. **Trigger Deployment**:
+   - Push to the `main` branch to trigger automatic deployment
+   - Or manually trigger the workflow from GitHub Actions tab
+
+The workflow will:
+- Build the .NET 8 MVC application
+- Deploy Bicep infrastructure to Azure
+- Deploy the web application to the created App Service
+
+### Option 2: Local Development Setup
+
+#### For React Frontend Development
 
 ### 1. Clone and Install
 
 ```bash
 git clone <repository-url>
-cd Azure-Service-Deployment-Web
+cd Azure-Service-Deployment-Web/src/react
 npm install
+```
+
+#### For .NET Backend Development
+
+```bash
+cd Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb
+dotnet restore
+dotnet build
+dotnet run
 ```
 
 ### 2. Azure AD App Registration
@@ -144,6 +200,39 @@ Access in code:
 ```tsx
 const customSetting = process.env.REACT_APP_CUSTOM_SETTING;
 ```
+
+## 🔄 GitHub Actions Workflow
+
+This repository includes a comprehensive CI/CD pipeline (`.github/workflows/deploy.yml`) that:
+
+### Build Stage
+- Checks out the code
+- Sets up .NET 8 SDK
+- Restores dependencies
+- Builds the application in Release configuration
+- Publishes the application
+- Uploads build artifacts
+
+### Deploy Stage (main branch only)
+- Downloads build artifacts
+- Authenticates with Azure using OIDC/federated credentials
+- Creates Azure resource group if it doesn't exist
+- Deploys Bicep infrastructure templates
+- Deploys the web application to the created App Service
+
+### Required GitHub Secrets
+- `AZURE_CLIENT_ID`: Service principal client ID
+- `AZURE_TENANT_ID`: Azure tenant ID  
+- `AZURE_SUBSCRIPTION_ID`: Azure subscription ID
+
+### Workflow Configuration
+The workflow can be customized via environment variables in the workflow file:
+- `AZURE_RESOURCE_GROUP`: Target resource group name
+- `AZURE_REGION`: Azure region for deployment
+- `DOTNET_VERSION`: .NET SDK version to use
+
+### Manual Trigger
+The workflow can be manually triggered from the GitHub Actions tab using the "workflow_dispatch" event.
 
 ## 🧪 Testing
 

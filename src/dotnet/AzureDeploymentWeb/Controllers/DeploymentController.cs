@@ -96,7 +96,10 @@ namespace AzureDeploymentWeb.Controllers
                         .OfType<DeploymentMonitoringService>()
                         .FirstOrDefault();
                     
-                    monitoringService?.TrackDeployment(deploymentName, userName, startTime, model.SelectedSubscriptionId!, model.SelectedResourceGroupName!);
+                    if (monitoringService != null)
+                    {
+                        await monitoringService.TrackDeployment(deploymentName, userName, startTime, model.SelectedSubscriptionId!, model.SelectedResourceGroupName!);
+                    }
 
                     model.DeploymentStatus = "started";
                     model.DeploymentMessage = "Deployment started successfully! You'll receive notifications as it progresses.";

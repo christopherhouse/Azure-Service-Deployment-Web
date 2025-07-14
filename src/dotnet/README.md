@@ -5,12 +5,14 @@ A .NET 8 MVC web application that enables you to deploy Azure resources by uploa
 ## 🚀 Features
 
 - **File Upload Interface**: Upload ARM templates (.json) and parameter files (.json) using Razor views
+- **Dynamic Resource Selection**: Select subscription and resource group from dropdowns populated with your available Azure resources
 - **Azure Authentication**: Secure authentication using Microsoft Entra ID (Azure AD) with Microsoft.Identity.Web
 - **Real-time Deployment Notifications**: SignalR-powered notifications that update automatically without page refresh
 - **Visual Status Indicators**: Color-coded deployment status with success/failure indicators
 - **Deployment Monitoring**: Track deployment progress with start time, duration, and resource group information
 - **Notification Management**: Individual and bulk notification clearing with persistent notifications until dismissed
 - **Success/Error Handling**: Clear success messages with emojis and detailed error reporting
+- **Intelligent Caching**: Fast-loading dropdowns with configurable in-memory or Redis caching for Azure resource discovery
 - **Configuration**: Easy configuration through appsettings.json
 
 ## 📋 Prerequisites
@@ -53,11 +55,25 @@ A .NET 8 MVC web application that enables you to deploy Azure resources by uploa
        "SubscriptionId": "your-subscription-id-here",
        "ResourceGroup": "your-resource-group-here"
      },
+     "Cache": {
+       "Provider": "Memory",
+       "Redis": {
+         "ConnectionString": ""
+       },
+       "SubscriptionsCacheDurationMinutes": 60,
+       "ResourceGroupsCacheDurationMinutes": 30
+     },
      "AzureSignalR": {
        "ConnectionString": ""
      }
    }
    ```
+
+   **Cache Configuration**:
+   - `Provider`: Set to "Memory" for in-memory caching or "Redis" for Azure Redis Cache
+   - `Redis.ConnectionString`: Connection string for Azure Redis Cache (required when Provider is "Redis")
+   - `SubscriptionsCacheDurationMinutes`: How long to cache subscription lists (default: 60 minutes)
+   - `ResourceGroupsCacheDurationMinutes`: How long to cache resource group lists (default: 30 minutes)
 
    **Note**: The `AzureSignalR` section is optional. If no connection string is provided, the application will use local SignalR. To use Azure SignalR Service for production scaling, provide the connection string from your Azure SignalR Service instance.
 
@@ -72,25 +88,33 @@ The app will be available at `https://localhost:5001`
 ## 🎯 How to Use
 
 1. **Sign In**: Click "Sign in with Microsoft" to authenticate with your Azure account
-2. **Upload Files**: 
+2. **Select Resources**: 
+   - Choose your subscription from the dropdown
+   - Select your target resource group from the dropdown (populated after subscription selection)
+3. **Upload Files**: 
    - Select your ARM template file (.json)
    - Select your parameters file (.json)
-3. **Deploy**: Click "Deploy to Azure" to start the deployment
-4. **Monitor**: Watch the real-time status indicator during deployment
-5. **Results**: View success message with emojis or detailed error information
+4. **Deploy**: Click "Deploy to Azure" to start the deployment
+5. **Monitor**: Watch the real-time status indicator during deployment
+6. **Results**: View success message with emojis or detailed error information
 
 ## 📁 Project Structure
 
 ```
 src/dotnet/AzureDeploymentWeb/
 ├── Controllers/
-│   ├── HomeController.cs          # Main controller with authentication check
-│   └── DeploymentController.cs    # Deployment functionality
+│   ├── HomeController.cs              # Main controller with authentication check
+│   ├── DeploymentController.cs        # Deployment functionality
+│   ├── AzureResourcesController.cs    # API endpoints for Azure resource discovery
+│   └── CacheController.cs             # Cache management and diagnostics
 ├── Models/
-│   ├── ErrorViewModel.cs          # Error handling model
-│   └── DeploymentViewModel.cs     # Deployment forms and status models
+│   ├── ErrorViewModel.cs              # Error handling model
+│   ├── DeploymentViewModel.cs         # Deployment forms and status models
+│   └── CacheOptions.cs               # Cache configuration model
 ├── Services/
-│   └── AzureDeploymentService.cs  # Azure ARM deployment logic
+│   ├── AzureDeploymentService.cs      # Azure ARM deployment logic
+│   ├── AzureResourceDiscoveryService.cs # Azure resource discovery with caching
+│   └── DeploymentMonitoringService.cs # Background deployment monitoring
 ├── Views/
 │   ├── Home/
 │   │   └── Index.cshtml           # Landing page
@@ -110,6 +134,7 @@ src/dotnet/AzureDeploymentWeb/
 - **SignalR**: Real-time web functionality for deployment notifications (local or Azure SignalR Service)
 - **Microsoft.Identity.Web**: Azure AD authentication
 - **Azure.ResourceManager**: Azure resource management
+- **IDistributedCache**: Caching abstraction with Memory and Redis providers
 - **Razor Views**: Server-side UI rendering
 - **Bootstrap 5**: UI styling
 
@@ -147,6 +172,52 @@ dotnet publish --configuration Release
 ```
 
 The build artifacts will be in the `bin/Release/net8.0/publish/` directory.
+
+## 📡 API Endpoints
+
+The application provides REST API endpoints for resource discovery:
+
+- `GET /api/AzureResources/subscriptions` - Get available subscriptions
+- `GET /api/AzureResources/resourcegroups/{subscriptionId}` - Get resource groups for a subscription
+- `POST /api/Cache/clear` - Clear cached data (requires authentication)
+- `GET /api/Cache/info` - Get cache configuration information (requires authentication)
+
+### Cache Management
+
+Use the cache management endpoints to clear cached data when needed:
+
+```bash
+# Clear subscriptions cache
+curl -X POST https://localhost:5001/api/Cache/clear \
+  -H "Content-Type: application/json" \
+  -d '{"clearSubscriptions": true}'
+
+# Clear resource groups cache for a specific subscription
+curl -X POST https://localhost:5001/api/Cache/clear \
+  -H "Content-Type: application/json" \
+  -d '{"clearResourceGroups": true, "subscriptionId": "your-subscription-id"}'
+```
+
+## ⚡ Performance Features
+
+### Intelligent Caching
+- **Subscriptions**: Cached for 60 minutes (configurable) since they rarely change
+- **Resource Groups**: Cached for 30 minutes (configurable) to balance freshness and performance
+- **Cache Providers**: Support for both in-memory (development) and Redis (production scaling)
+- **Cache Keys**: Subscription-specific caching to prevent cross-subscription data leakage
+
+### Configuration
+```json
+{
+  "Cache": {
+    "Provider": "Memory|Redis",
+    "Redis": {
+      "ConnectionString": "your-redis-connection-string"
+    },
+    "SubscriptionsCacheDurationMinutes": 60,
+    "ResourceGroupsCacheDurationMinutes": 30
+  }
+}
 
 ## ⚠️ Important Notes
 

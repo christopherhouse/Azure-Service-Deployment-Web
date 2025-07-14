@@ -7,30 +7,44 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AzureDeploymentWeb.Controllers
 {
-    [Authorize]
     public class DeploymentController : Controller
     {
         private readonly IAzureDeploymentService _deploymentService;
-        private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConfiguration _configuration;
 
         public DeploymentController(
             IAzureDeploymentService deploymentService, 
-            IConfiguration configuration,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IConfiguration configuration)
         {
             _deploymentService = deploymentService;
-            _configuration = configuration;
             _serviceProvider = serviceProvider;
+            _configuration = configuration;
+        }
+
+        private bool IsAuthenticationConfigured()
+        {
+            var clientId = _configuration["AzureAd:ClientId"];
+            var clientSecret = _configuration["AzureAd:ClientSecret"];
+            return !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret);
+        }
+
+        private IActionResult CheckAuthorizationIfConfigured()
+        {
+            if (IsAuthenticationConfigured() && !User.Identity?.IsAuthenticated == true)
+            {
+                return Challenge();
+            }
+            return null;
         }
 
         public IActionResult Index()
         {
-            var model = new DeploymentViewModel
-            {
-                ResourceGroup = _configuration["Azure:ResourceGroup"],
-                SubscriptionId = _configuration["Azure:SubscriptionId"]
-            };
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
+            var model = new DeploymentViewModel();
             return View(model);
         }
 
@@ -38,10 +52,11 @@ namespace AzureDeploymentWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deploy(DeploymentViewModel model)
         {
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
             if (!ModelState.IsValid)
             {
-                model.ResourceGroup = _configuration["Azure:ResourceGroup"];
-                model.SubscriptionId = _configuration["Azure:SubscriptionId"];
                 return View("Index", model);
             }
 
@@ -65,8 +80,13 @@ namespace AzureDeploymentWeb.Controllers
                 var deploymentName = $"webapp-deployment-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
                 var startTime = DateTime.UtcNow;
 
-                // Start async deployment
-                var result = await _deploymentService.StartAsyncDeploymentAsync(templateContent, parametersContent, deploymentName);
+                // Start async deployment with selected subscription and resource group
+                var result = await _deploymentService.StartAsyncDeploymentAsync(
+                    templateContent, 
+                    parametersContent, 
+                    deploymentName,
+                    model.SelectedSubscriptionId!,
+                    model.SelectedResourceGroupName!);
 
                 if (result.Success)
                 {
@@ -76,7 +96,10 @@ namespace AzureDeploymentWeb.Controllers
                         .OfType<DeploymentMonitoringService>()
                         .FirstOrDefault();
                     
-                    monitoringService?.TrackDeployment(deploymentName, userName, startTime);
+                    if (monitoringService != null)
+                    {
+                        await monitoringService.TrackDeployment(deploymentName, userName, startTime, model.SelectedSubscriptionId!, model.SelectedResourceGroupName!);
+                    }
 
                     model.DeploymentStatus = "started";
                     model.DeploymentMessage = "Deployment started successfully! You'll receive notifications as it progresses.";
@@ -95,28 +118,39 @@ namespace AzureDeploymentWeb.Controllers
                 model.DeploymentMessage = ex.Message;
             }
 
-            model.ResourceGroup = _configuration["Azure:ResourceGroup"];
-            model.SubscriptionId = _configuration["Azure:SubscriptionId"];
             return View("Index", model);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Status(string deploymentName)
+        public async Task<IActionResult> Status(string deploymentName, string subscriptionId, string resourceGroupName)
         {
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
             if (string.IsNullOrEmpty(deploymentName))
             {
                 return BadRequest("Deployment name is required");
             }
 
+            if (string.IsNullOrEmpty(subscriptionId))
+            {
+                return BadRequest("Subscription ID is required");
+            }
+
+            if (string.IsNullOrEmpty(resourceGroupName))
+            {
+                return BadRequest("Resource group name is required");
+            }
+
             try
             {
-                var status = await _deploymentService.GetDeploymentStatusAsync(deploymentName);
+                var status = await _deploymentService.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName);
                 
                 var statusModel = new DeploymentStatusViewModel
                 {
                     DeploymentName = deploymentName,
                     Status = status,
-                    ResourceGroup = _configuration["Azure:ResourceGroup"],
+                    ResourceGroup = resourceGroupName,
                     IsSuccessful = status == "Succeeded",
                     IsRunning = status == "Running" || status == "Accepted",
                     HasError = status == "Failed" || status == "Canceled"

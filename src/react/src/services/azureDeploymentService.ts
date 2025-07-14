@@ -5,6 +5,8 @@ export interface DeploymentParams {
   template: any;
   parameters: any;
   deploymentName: string;
+  subscriptionId: string;
+  resourceGroupName: string;
 }
 
 export interface DeploymentResult {
@@ -16,19 +18,10 @@ export interface DeploymentResult {
 }
 
 export class AzureDeploymentService {
-  private client: ResourceManagementClient;
-  private subscriptionId: string;
-  private resourceGroupName: string;
+  private credential: TokenCredential;
 
   constructor(credential: TokenCredential) {
-    this.subscriptionId = process.env.REACT_APP_AZURE_SUBSCRIPTION_ID!;
-    this.resourceGroupName = process.env.REACT_APP_AZURE_RESOURCE_GROUP!;
-    
-    if (!this.subscriptionId || !this.resourceGroupName) {
-      throw new Error("Missing required environment variables: REACT_APP_AZURE_SUBSCRIPTION_ID or REACT_APP_AZURE_RESOURCE_GROUP");
-    }
-
-    this.client = new ResourceManagementClient(credential, this.subscriptionId);
+    this.credential = credential;
   }
 
   /**
@@ -48,6 +41,9 @@ export class AzureDeploymentService {
 
   async deployTemplate(params: DeploymentParams): Promise<DeploymentResult> {
     try {
+      // Create client for the specific subscription
+      const client = new ResourceManagementClient(this.credential, params.subscriptionId);
+      
       // Extract actual parameters from ARM parameter file structure if needed
       const actualParameters = this.extractParameters(params.parameters);
       
@@ -59,10 +55,10 @@ export class AzureDeploymentService {
         },
       };
 
-      console.log(`Starting deployment: ${params.deploymentName}`);
+      console.log(`Starting deployment: ${params.deploymentName} in subscription ${params.subscriptionId}, resource group ${params.resourceGroupName}`);
       
-      const deployment = await this.client.deployments.beginCreateOrUpdateAndWait(
-        this.resourceGroupName,
+      const deployment = await client.deployments.beginCreateOrUpdateAndWait(
+        params.resourceGroupName,
         params.deploymentName,
         deploymentParameters
       );
@@ -70,7 +66,7 @@ export class AzureDeploymentService {
       return {
         success: true,
         deploymentName: params.deploymentName,
-        resourceGroupName: this.resourceGroupName,
+        resourceGroupName: params.resourceGroupName,
         outputs: deployment.properties?.outputs,
       };
     } catch (error) {
@@ -78,16 +74,17 @@ export class AzureDeploymentService {
       return {
         success: false,
         deploymentName: params.deploymentName,
-        resourceGroupName: this.resourceGroupName,
+        resourceGroupName: params.resourceGroupName,
         error: error instanceof Error ? error.message : "Unknown deployment error",
       };
     }
   }
 
-  async getDeploymentStatus(deploymentName: string) {
+  async getDeploymentStatus(deploymentName: string, subscriptionId: string, resourceGroupName: string) {
     try {
-      const deployment = await this.client.deployments.get(
-        this.resourceGroupName,
+      const client = new ResourceManagementClient(this.credential, subscriptionId);
+      const deployment = await client.deployments.get(
+        resourceGroupName,
         deploymentName
       );
       return deployment.properties?.provisioningState;

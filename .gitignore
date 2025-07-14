@@ -4,10 +4,10 @@
 .pnp.js
 
 # testing
-/coverage
+**/coverage
 
 # production
-/build
+./build
 **/build
 
 # misc

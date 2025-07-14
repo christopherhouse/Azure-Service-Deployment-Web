@@ -19,6 +19,18 @@ jest.mock('./services/azureDeploymentService', () => ({
   AzureDeploymentService: jest.fn(),
 }));
 
+jest.mock('./services/azureResourceDiscoveryService', () => ({
+  AzureResourceDiscoveryService: jest.fn(),
+}));
+
+jest.mock('./components/SubscriptionSelector', () => ({
+  SubscriptionSelector: () => <div data-testid="subscription-selector">Subscription Selector</div>,
+}));
+
+jest.mock('./components/ResourceGroupSelector', () => ({
+  ResourceGroupSelector: () => <div data-testid="resource-group-selector">Resource Group Selector</div>,
+}));
+
 jest.mock('./hooks/useAzureCredential', () => ({
   useAzureCredential: () => null,
 }));

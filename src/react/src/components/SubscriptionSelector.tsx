@@ -67,7 +67,8 @@ export const SubscriptionSelector: React.FC<SubscriptionSelectorProps> = ({
       
       {loading && (
         <div className="loading-indicator">
-          ⏳ Loading subscriptions...
+          <div className="subscription-spinner"></div>
+          Loading subscriptions...
         </div>
       )}
       

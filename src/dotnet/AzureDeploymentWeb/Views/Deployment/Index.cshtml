@@ -18,9 +18,17 @@
                 
                 <div class="mb-3">
                     <label asp-for="SelectedSubscriptionId" class="form-label">🔑 Select Subscription</label>
-                    <select asp-for="SelectedSubscriptionId" class="form-select" id="subscriptionSelect" required>
-                        <option value="">Select a subscription...</option>
-                    </select>
+                    <div class="position-relative">
+                        <select asp-for="SelectedSubscriptionId" class="form-select" id="subscriptionSelect" required>
+                            <option value="">Select a subscription...</option>
+                        </select>
+                        <div id="subscriptionLoadingIndicator" class="subscription-loading-overlay" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <span class="spinner me-2"></span>
+                                <span>Loading subscriptions...</span>
+                            </div>
+                        </div>
+                    </div>
                     <span asp-validation-for="SelectedSubscriptionId" class="text-danger"></span>
                 </div>
 
@@ -156,10 +164,16 @@
         });
         
         function loadSubscriptions() {
+            const select = $('#subscriptionSelect');
+            const loadingIndicator = $('#subscriptionLoadingIndicator');
+            
+            // Show loading state
+            loadingIndicator.show();
+            select.prop('disabled', true);
+            
             fetch('/api/AzureResources/subscriptions')
                 .then(response => response.json())
                 .then(data => {
-                    const select = $('#subscriptionSelect');
                     select.empty().append('<option value="">Select a subscription...</option>');
                     
                     if (data && data.length > 0) {
@@ -172,7 +186,11 @@
                 })
                 .catch(error => {
                     console.error('Error loading subscriptions:', error);
-                    $('#subscriptionSelect').empty().append('<option value="">Error loading subscriptions</option>');
+                    select.empty().append('<option value="">Error loading subscriptions</option>');
+                })
+                .finally(() => {
+                    loadingIndicator.hide();
+                    select.prop('disabled', false);
                 });
         }
         

@@ -32,7 +32,7 @@ var webAppName = 'app-${workloadName}-${environmentName}'
 
 // Deploy Log Analytics workspace first as other resources depend on it
 module logAnalytics 'modules/log-analytics.bicep' = {
-  name: 'deploy-loganalytics'
+  name: 'deploy-loganalytics-${deployment().name}'
   params: {
     name: logAnalyticsWorkspaceName
     location: location
@@ -43,7 +43,7 @@ module logAnalytics 'modules/log-analytics.bicep' = {
 
 // Deploy Key Vault
 module keyVault 'modules/key-vault.bicep' = {
-  name: 'deploy-keyvault'
+  name: 'deploy-keyvault-${deployment().name}'
   params: {
     name: keyVaultName
     location: location
@@ -54,7 +54,7 @@ module keyVault 'modules/key-vault.bicep' = {
 
 // Deploy Redis Cache
 module redisCache 'modules/redis.bicep' = {
-  name: 'deploy-redis'
+  name: 'deploy-redis-${deployment().name}'
   params: {
     name: redisCacheName
     location: location
@@ -65,7 +65,7 @@ module redisCache 'modules/redis.bicep' = {
 
 // Deploy SignalR Service
 module signalR 'modules/signalr.bicep' = {
-  name: 'deploy-signalr'
+  name: 'deploy-signalr-${deployment().name}'
   params: {
     name: signalRName
     location: location
@@ -76,7 +76,7 @@ module signalR 'modules/signalr.bicep' = {
 
 // Deploy App Service Plan and Web App
 module appService 'modules/app-service.bicep' = {
-  name: 'deploy-appservice'
+  name: 'deploy-appservice-${deployment().name}'
   params: {
     appServicePlanName: appServicePlanName
     webAppName: webAppName

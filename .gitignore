@@ -27,6 +27,9 @@ yarn-error.log*
 ##
 ## Get latest from `dotnet new gitignore`
 
+appsettings.local.json
+
+
 # dotenv files
 .env
 

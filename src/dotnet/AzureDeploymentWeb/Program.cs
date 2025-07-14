@@ -2,11 +2,33 @@ using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using AzureDeploymentWeb.Services;
 using AzureDeploymentWeb.Hubs;
+using AzureDeploymentWeb.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var clientId = builder.Configuration["AzureAd:ClientId"];
 var clientSecret = builder.Configuration["AzureAd:ClientSecret"];
+
+// Configure cache options
+var cacheOptions = new CacheOptions();
+builder.Configuration.GetSection(CacheOptions.SectionName).Bind(cacheOptions);
+builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.SectionName));
+
+// Configure caching services
+if (cacheOptions.Provider.Equals("Redis", StringComparison.OrdinalIgnoreCase) && 
+    !string.IsNullOrEmpty(cacheOptions.Redis.ConnectionString))
+{
+    Console.WriteLine("Using Redis distributed cache");
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = cacheOptions.Redis.ConnectionString;
+    });
+}
+else
+{
+    Console.WriteLine("Using in-memory distributed cache");
+    builder.Services.AddDistributedMemoryCache();
+}
 
 // Add services to the container.
 var controllersBuilder = builder.Services.AddControllersWithViews();

@@ -1,5 +1,8 @@
 using Azure.Core;
-using Microsoft.Identity.Web;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.ResourceManager.Resources;
+using Azure.ResourceManager.Resources.Models;
 using System.Text.Json;
 
 namespace AzureDeploymentWeb.Services
@@ -22,42 +25,67 @@ namespace AzureDeploymentWeb.Services
     public class AzureDeploymentService : IAzureDeploymentService
     {
         private readonly IConfiguration _configuration;
-        private readonly ITokenAcquisition _tokenAcquisition;
         private readonly string _subscriptionId;
         private readonly string _resourceGroupName;
+        private readonly ArmClient _armClient;
 
-        public AzureDeploymentService(IConfiguration configuration, ITokenAcquisition tokenAcquisition)
+        public AzureDeploymentService(IConfiguration configuration)
         {
             _configuration = configuration;
-            _tokenAcquisition = tokenAcquisition;
             _subscriptionId = _configuration["Azure:SubscriptionId"] ?? 
                 throw new InvalidOperationException("Azure:SubscriptionId not configured");
             _resourceGroupName = _configuration["Azure:ResourceGroup"] ?? 
                 throw new InvalidOperationException("Azure:ResourceGroup not configured");
+            
+            // Use DefaultAzureCredential for authentication
+            var credential = new DefaultAzureCredential();
+            _armClient = new ArmClient(credential);
         }
 
         public async Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName)
         {
             try
             {
-                // Get access token for Azure Resource Manager
-                var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(
-                    new[] { "https://management.azure.com/user_impersonation" });
+                // Get subscription and resource group
+                var subscription = await _armClient.GetDefaultSubscriptionAsync();
+                var resourceGroups = subscription.GetResourceGroups();
+                var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
 
-                // Validate template and parameters
+                // Parse template JSON
                 var template = JsonDocument.Parse(templateContent);
-                var parameters = ExtractParameters(parametersContent);
                 
-                // For demo purposes, simulate a successful deployment
-                // In a real implementation, you would use Azure.ResourceManager to deploy the template
-                await Task.Delay(2000); // Simulate deployment time
+                // Parse parameters - handle both ARM parameter file format and direct parameters
+                var parametersObject = ExtractParameters(parametersContent);
+                
+                // Create deployment properties
+                var deploymentProperties = new ArmDeploymentProperties(ArmDeploymentMode.Incremental)
+                {
+                    Template = BinaryData.FromString(templateContent),
+                    Parameters = BinaryData.FromString(JsonSerializer.Serialize(parametersObject))
+                };
+
+                // Create deployment content
+                var deploymentContent = new ArmDeploymentContent(deploymentProperties);
+
+                // Start the deployment
+                var deployments = resourceGroup.Value.GetArmDeployments();
+                var deploymentOperation = await deployments.CreateOrUpdateAsync(
+                    Azure.WaitUntil.Completed, 
+                    deploymentName, 
+                    deploymentContent);
+
+                var deployment = deploymentOperation.Value;
+                var deploymentData = deployment.Data;
 
                 return new DeploymentResult
                 {
-                    Success = true,
+                    Success = deploymentData.Properties.ProvisioningState == ResourcesProvisioningState.Succeeded,
                     DeploymentName = deploymentName,
                     ResourceGroupName = _resourceGroupName,
-                    Outputs = new { message = "Deployment completed successfully (demo)" }
+                    Outputs = deploymentData.Properties.Outputs?.ToObjectFromJson<object>(),
+                    Error = deploymentData.Properties.ProvisioningState != ResourcesProvisioningState.Succeeded 
+                        ? $"Deployment failed with state: {deploymentData.Properties.ProvisioningState}" 
+                        : null
                 };
             }
             catch (Exception ex)
@@ -76,17 +104,21 @@ namespace AzureDeploymentWeb.Services
         {
             try
             {
-                // Get access token for Azure Resource Manager
-                var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(
-                    new[] { "https://management.azure.com/user_impersonation" });
+                // Get subscription and resource group
+                var subscription = await _armClient.GetDefaultSubscriptionAsync();
+                var resourceGroups = subscription.GetResourceGroups();
+                var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
 
-                // For demo purposes, return succeeded status
-                // In a real implementation, you would query the actual deployment status
-                await Task.Delay(100);
-                return "Succeeded";
+                // Get the deployment
+                var deployments = resourceGroup.Value.GetArmDeployments();
+                var deployment = await deployments.GetAsync(deploymentName);
+                
+                // Return the provisioning state as string
+                return deployment.Value.Data.Properties.ProvisioningState?.ToString() ?? "Unknown";
             }
-            catch
+            catch (Exception)
             {
+                // If deployment not found or any other error, return Failed
                 return "Failed";
             }
         }

@@ -10,10 +10,10 @@ namespace AzureDeploymentWeb.Services
 {
     public interface IAzureDeploymentService
     {
-        Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName);
-        Task<string> GetDeploymentStatusAsync(string deploymentName);
-        Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName);
-        Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName);
+        Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName);
+        Task<string> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName);
+        Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName);
+        Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName, string subscriptionId, string resourceGroupName);
     }
 
     public class DeploymentResult
@@ -29,32 +29,23 @@ namespace AzureDeploymentWeb.Services
 
     public class AzureDeploymentService : IAzureDeploymentService
     {
-        private readonly IConfiguration _configuration;
-        private readonly string _subscriptionId;
-        private readonly string _resourceGroupName;
         private readonly ArmClient _armClient;
 
-        public AzureDeploymentService(IConfiguration configuration)
+        public AzureDeploymentService()
         {
-            _configuration = configuration;
-            _subscriptionId = _configuration["Azure:SubscriptionId"] ?? 
-                throw new InvalidOperationException("Azure:SubscriptionId not configured");
-            _resourceGroupName = _configuration["Azure:ResourceGroup"] ?? 
-                throw new InvalidOperationException("Azure:ResourceGroup not configured");
-            
             // Use DefaultAzureCredential for authentication
             var credential = new DefaultAzureCredential();
             _armClient = new ArmClient(credential);
         }
 
-        public async Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName)
+        public async Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName)
         {
             try
             {
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
-                var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
+                var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
                 // Parse template JSON
                 var template = JsonDocument.Parse(templateContent);
@@ -86,7 +77,7 @@ namespace AzureDeploymentWeb.Services
                 {
                     Success = deploymentData.Properties.ProvisioningState == ResourcesProvisioningState.Succeeded,
                     DeploymentName = deploymentName,
-                    ResourceGroupName = _resourceGroupName,
+                    ResourceGroupName = resourceGroupName,
                     Outputs = deploymentData.Properties.Outputs?.ToObjectFromJson<object>(),
                     Error = deploymentData.Properties.ProvisioningState != ResourcesProvisioningState.Succeeded 
                         ? $"Deployment failed with state: {deploymentData.Properties.ProvisioningState}" 
@@ -103,7 +94,7 @@ namespace AzureDeploymentWeb.Services
                 {
                     Success = false,
                     DeploymentName = deploymentName,
-                    ResourceGroupName = _resourceGroupName,
+                    ResourceGroupName = resourceGroupName,
                     Error = ex.Message,
                     StartTime = DateTime.UtcNow,
                     EndTime = DateTime.UtcNow
@@ -111,14 +102,14 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName)
+        public async Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName)
         {
             try
             {
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
-                var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
+                var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
                 // Parse template JSON
                 var template = JsonDocument.Parse(templateContent);
@@ -147,7 +138,7 @@ namespace AzureDeploymentWeb.Services
                 {
                     Success = true,
                     DeploymentName = deploymentName,
-                    ResourceGroupName = _resourceGroupName,
+                    ResourceGroupName = resourceGroupName,
                     StartTime = DateTime.UtcNow
                 };
             }
@@ -157,7 +148,7 @@ namespace AzureDeploymentWeb.Services
                 {
                     Success = false,
                     DeploymentName = deploymentName,
-                    ResourceGroupName = _resourceGroupName,
+                    ResourceGroupName = resourceGroupName,
                     Error = ex.Message,
                     StartTime = DateTime.UtcNow,
                     EndTime = DateTime.UtcNow
@@ -165,14 +156,14 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<string> GetDeploymentStatusAsync(string deploymentName)
+        public async Task<string> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName)
         {
             try
             {
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
-                var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
+                var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
                 // Get the deployment
                 var deployments = resourceGroup.Value.GetArmDeployments();
@@ -188,14 +179,14 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName)
+        public async Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName, string subscriptionId, string resourceGroupName)
         {
             try
             {
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
-                var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
+                var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
                 // Get the deployment
                 var deployments = resourceGroup.Value.GetArmDeployments();
@@ -207,7 +198,7 @@ namespace AzureDeploymentWeb.Services
                     DeploymentName = deploymentName,
                     Status = deploymentData.Properties.ProvisioningState?.ToString() ?? "Unknown",
                     StartTime = deploymentData.Properties.Timestamp?.DateTime ?? DateTime.UtcNow,
-                    ResourceGroup = _resourceGroupName
+                    ResourceGroup = resourceGroupName
                 };
 
                 // Set end time if deployment is completed

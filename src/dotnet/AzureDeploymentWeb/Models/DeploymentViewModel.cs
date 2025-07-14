@@ -12,11 +12,21 @@ namespace AzureDeploymentWeb.Models
         [Display(Name = "Parameters File")]
         public IFormFile? ParametersFile { get; set; }
 
+        [Required(ErrorMessage = "Please select a subscription")]
+        [Display(Name = "Subscription")]
+        public string? SelectedSubscriptionId { get; set; }
+
+        [Required(ErrorMessage = "Please select a resource group")]
+        [Display(Name = "Resource Group")]
+        public string? SelectedResourceGroupName { get; set; }
+
         public string? DeploymentStatus { get; set; }
         public string? DeploymentMessage { get; set; }
         public string? DeploymentName { get; set; }
-        public string? ResourceGroup { get; set; }
-        public string? SubscriptionId { get; set; }
+        
+        // For backwards compatibility - these will be populated from the selected values
+        public string? ResourceGroup => SelectedResourceGroupName;
+        public string? SubscriptionId => SelectedSubscriptionId;
     }
 
     public class DeploymentStatusViewModel

@@ -17,6 +17,22 @@
                 @Html.AntiForgeryToken()
                 
                 <div class="mb-3">
+                    <label asp-for="SelectedSubscriptionId" class="form-label">🔑 Select Subscription</label>
+                    <select asp-for="SelectedSubscriptionId" class="form-select" id="subscriptionSelect" required>
+                        <option value="">Select a subscription...</option>
+                    </select>
+                    <span asp-validation-for="SelectedSubscriptionId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="SelectedResourceGroupName" class="form-label">📁 Select Resource Group</label>
+                    <select asp-for="SelectedResourceGroupName" class="form-select" id="resourceGroupSelect" required disabled>
+                        <option value="">Please select a subscription first</option>
+                    </select>
+                    <span asp-validation-for="SelectedResourceGroupName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
                     <label asp-for="TemplateFile" class="form-label">📄 ARM Template (.json)</label>
                     <input asp-for="TemplateFile" type="file" class="form-control" accept=".json" required />
                     <span asp-validation-for="TemplateFile" class="text-danger"></span>
@@ -28,12 +44,15 @@
                     <span asp-validation-for="ParametersFile" class="text-danger"></span>
                 </div>
 
-                <div class="deployment-info mb-3">
-                    <p><strong>Target Subscription:</strong> @(Model.SubscriptionId ?? "Not configured")</p>
-                    <p><strong>Target Resource Group:</strong> @(Model.ResourceGroup ?? "Not configured")</p>
-                </div>
+                @if (!string.IsNullOrEmpty(Model.SelectedSubscriptionId) && !string.IsNullOrEmpty(Model.SelectedResourceGroupName))
+                {
+                    <div class="deployment-info mb-3">
+                        <p><strong>Target Subscription:</strong> @Model.SelectedSubscriptionId</p>
+                        <p><strong>Target Resource Group:</strong> @Model.SelectedResourceGroupName</p>
+                    </div>
+                }
 
-                <button type="submit" class="btn btn-primary btn-lg" id="deployButton">
+                <button type="submit" class="btn btn-primary btn-lg" id="deployButton" disabled>
                     🚀 Deploy to Azure
                 </button>
             </form>
@@ -104,9 +123,98 @@
     
     <script>
         $(document).ready(function() {
+            // Load subscriptions on page load
+            loadSubscriptions();
+            
+            // Handle subscription change
+            $('#subscriptionSelect').on('change', function() {
+                const subscriptionId = $(this).val();
+                if (subscriptionId) {
+                    loadResourceGroups(subscriptionId);
+                } else {
+                    clearResourceGroups();
+                }
+                updateDeployButtonState();
+            });
+            
+            // Handle resource group change
+            $('#resourceGroupSelect').on('change', function() {
+                updateDeployButtonState();
+            });
+            
+            // Handle file selection
+            $('#deploymentForm input[type="file"]').on('change', function() {
+                updateDeployButtonState();
+            });
+            
             $('#deploymentForm').on('submit', function() {
                 $('#deployButton').prop('disabled', true).html('<span class="spinner me-2"></span>⏳ Deploying...');
             });
+            
+            // Initial state check
+            updateDeployButtonState();
         });
+        
+        function loadSubscriptions() {
+            fetch('/api/AzureResources/subscriptions')
+                .then(response => response.json())
+                .then(data => {
+                    const select = $('#subscriptionSelect');
+                    select.empty().append('<option value="">Select a subscription...</option>');
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(subscription => {
+                            select.append(`<option value="${subscription.subscriptionId}">${subscription.displayName} (${subscription.subscriptionId})</option>`);
+                        });
+                    } else {
+                        select.append('<option value="">No subscriptions available</option>');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading subscriptions:', error);
+                    $('#subscriptionSelect').empty().append('<option value="">Error loading subscriptions</option>');
+                });
+        }
+        
+        function loadResourceGroups(subscriptionId) {
+            const resourceGroupSelect = $('#resourceGroupSelect');
+            resourceGroupSelect.prop('disabled', true).empty().append('<option value="">Loading...</option>');
+            
+            fetch(`/api/AzureResources/resourcegroups/${subscriptionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    resourceGroupSelect.empty().append('<option value="">Select a resource group...</option>');
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(resourceGroup => {
+                            resourceGroupSelect.append(`<option value="${resourceGroup.name}">${resourceGroup.name} (${resourceGroup.location})</option>`);
+                        });
+                        resourceGroupSelect.prop('disabled', false);
+                    } else {
+                        resourceGroupSelect.append('<option value="">No resource groups available</option>');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading resource groups:', error);
+                    resourceGroupSelect.empty().append('<option value="">Error loading resource groups</option>');
+                });
+        }
+        
+        function clearResourceGroups() {
+            $('#resourceGroupSelect')
+                .prop('disabled', true)
+                .empty()
+                .append('<option value="">Please select a subscription first</option>');
+        }
+        
+        function updateDeployButtonState() {
+            const subscriptionSelected = $('#subscriptionSelect').val();
+            const resourceGroupSelected = $('#resourceGroupSelect').val();
+            const templateFileSelected = $('#deploymentForm input[name="TemplateFile"]')[0].files.length > 0;
+            const parametersFileSelected = $('#deploymentForm input[name="ParametersFile"]')[0].files.length > 0;
+            
+            const allRequired = subscriptionSelected && resourceGroupSelected && templateFileSelected && parametersFileSelected;
+            $('#deployButton').prop('disabled', !allRequired);
+        }
     </script>
 }

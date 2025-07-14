@@ -18,8 +18,9 @@ if (!string.IsNullOrEmpty(clientId))
     controllersBuilder.AddMicrosoftIdentityUI();
 }
 
-// Register Azure deployment service
+// Register Azure services
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
+builder.Services.AddScoped<IAzureResourceDiscoveryService, AzureResourceDiscoveryService>();
 
 // Add SignalR
 var azureSignalRConnectionString = builder.Configuration["AzureSignalR:ConnectionString"];

@@ -23,17 +23,20 @@ namespace AzureDeploymentWeb.Services
             _logger = logger;
         }
 
-        public void TrackDeployment(string deploymentName, string userName, DateTime startTime)
+        public void TrackDeployment(string deploymentName, string userName, DateTime startTime, string subscriptionId, string resourceGroupName)
         {
             _activeDeployments.TryAdd(deploymentName, new DeploymentTracker
             {
                 DeploymentName = deploymentName,
                 UserName = userName,
                 StartTime = startTime,
-                LastChecked = DateTime.UtcNow
+                LastChecked = DateTime.UtcNow,
+                SubscriptionId = subscriptionId,
+                ResourceGroupName = resourceGroupName
             });
             
-            _logger.LogInformation("Started tracking deployment {DeploymentName} for user {UserName}", deploymentName, userName);
+            _logger.LogInformation("Started tracking deployment {DeploymentName} for user {UserName} in subscription {SubscriptionId}, resource group {ResourceGroupName}", 
+                deploymentName, userName, subscriptionId, resourceGroupName);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -64,7 +67,7 @@ namespace AzureDeploymentWeb.Services
                     using var scope = _serviceProvider.CreateScope();
                     var deploymentService = scope.ServiceProvider.GetRequiredService<IAzureDeploymentService>();
                     
-                    var notification = await deploymentService.GetDeploymentDetailsAsync(deploymentName);
+                    var notification = await deploymentService.GetDeploymentDetailsAsync(deploymentName, tracker.SubscriptionId, tracker.ResourceGroupName);
                     
                     if (notification != null)
                     {
@@ -144,6 +147,8 @@ namespace AzureDeploymentWeb.Services
             public DateTime LastChecked { get; set; }
             public DateTime LastNotification { get; set; }
             public string? LastStatus { get; set; }
+            public string SubscriptionId { get; set; } = string.Empty;
+            public string ResourceGroupName { get; set; } = string.Empty;
         }
     }
 }

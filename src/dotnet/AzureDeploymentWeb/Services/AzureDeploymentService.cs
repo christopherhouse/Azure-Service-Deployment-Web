@@ -52,7 +52,7 @@ namespace AzureDeploymentWeb.Services
             try
             {
                 // Get subscription and resource group
-                var subscription = await _armClient.GetDefaultSubscriptionAsync();
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
 
@@ -116,7 +116,7 @@ namespace AzureDeploymentWeb.Services
             try
             {
                 // Get subscription and resource group
-                var subscription = await _armClient.GetDefaultSubscriptionAsync();
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
 
@@ -170,7 +170,7 @@ namespace AzureDeploymentWeb.Services
             try
             {
                 // Get subscription and resource group
-                var subscription = await _armClient.GetDefaultSubscriptionAsync();
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
 
@@ -193,7 +193,7 @@ namespace AzureDeploymentWeb.Services
             try
             {
                 // Get subscription and resource group
-                var subscription = await _armClient.GetDefaultSubscriptionAsync();
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{_subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(_resourceGroupName);
 

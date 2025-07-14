@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountName": {
-      "value": "examplestorage123"
+      "value": "examplestorage123abc"
     },
     "location": {
       "value": "East US"

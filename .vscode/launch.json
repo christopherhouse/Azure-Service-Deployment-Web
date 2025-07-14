@@ -6,6 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "dotnet: build",
+            "cwd": "${workspaceFolder}/src/dotnet/AzureDeploymentWeb",
             "program": "${workspaceFolder}/src/dotnet/AzureDeploymentWeb/bin/Debug/net8.0/AzureDeploymentWeb.dll",
             "args": [],
             "stopAtEntry": false,

@@ -26,6 +26,8 @@ A .NET 8 MVC web application that enables you to deploy Azure resources by uploa
 3. Set application name (e.g., "ARM Template Deployment Tool - .NET")
 4. Set redirect URI: `https://localhost:5001/signin-oidc` (for development)
 5. Note the **Application (client) ID** and **Directory (tenant) ID**
+6. Go to "Certificates & secrets" → "Client secrets" → "New client secret"
+7. Create a new client secret and note the **secret value** (copy it immediately as it won't be shown again)
 
 ### 2. Configuration
 
@@ -41,6 +43,7 @@ A .NET 8 MVC web application that enables you to deploy Azure resources by uploa
        "Instance": "https://login.microsoftonline.com/",
        "TenantId": "your-tenant-id-here",
        "ClientId": "your-client-id-here",
+       "ClientSecret": "your-client-secret-here",
        "CallbackPath": "/signin-oidc"
      },
      "Azure": {
@@ -103,6 +106,8 @@ src/dotnet/AzureDeploymentWeb/
 
 ## 🔐 Security Considerations
 
+- **Confidential Client**: The application is configured as a confidential client with client secret for enhanced security
+- **Client Secret**: Store client secret securely (use Azure Key Vault or environment variables in production)
 - **Environment Variables**: Never commit `appsettings.json` files with real credentials
 - **HTTPS**: Use HTTPS in production (update redirect URI accordingly)
 - **Permissions**: Ensure Azure AD app has minimal required permissions

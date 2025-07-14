@@ -5,6 +5,9 @@ using AzureDeploymentWeb.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var cid = builder.Configuration["AzureAd:ClientId"];
+var cis = builder.Configuration["AzureAd:ClientSecret"];
+
 // Add services to the container.
 builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
 
@@ -15,7 +18,8 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 
 // Add SignalR
-builder.Services.AddSignalR();
+Console.WriteLine("Azure SignalR Connection String: " + builder.Configuration["AzureSignalR:ConnectionString"]);
+builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["AzureSignalR:ConnectionString"]);
 
 // Add background service for deployment monitoring
 builder.Services.AddHostedService<DeploymentMonitoringService>();

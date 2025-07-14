@@ -5,14 +5,18 @@ using AzureDeploymentWeb.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var cid = builder.Configuration["AzureAd:ClientId"];
-var cis = builder.Configuration["AzureAd:ClientSecret"];
+var clientId = builder.Configuration["AzureAd:ClientId"];
+var clientSecret = builder.Configuration["AzureAd:ClientSecret"];
 
 // Add services to the container.
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
+var controllersBuilder = builder.Services.AddControllersWithViews();
 
-builder.Services.AddControllersWithViews()
-    .AddMicrosoftIdentityUI();
+// Only configure Microsoft Identity Web if ClientId is provided
+if (!string.IsNullOrEmpty(clientId))
+{
+    builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
+    controllersBuilder.AddMicrosoftIdentityUI();
+}
 
 // Register Azure deployment service
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
@@ -48,8 +52,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// Only use authentication/authorization if Microsoft Identity Web is configured
+if (!string.IsNullOrEmpty(clientId))
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
 
 app.MapControllerRoute(
     name: "default",

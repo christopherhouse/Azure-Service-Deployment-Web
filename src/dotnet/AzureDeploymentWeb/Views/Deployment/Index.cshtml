@@ -53,6 +53,18 @@
                         <p>@Model.DeploymentMessage</p>
                     }
                 }
+                else if (Model.DeploymentStatus == "started")
+                {
+                    <h4>🚀 Deployment Started! ⚡</h4>
+                    <p>✨ Your deployment has been started successfully! ✨</p>
+                    <p><strong>Resource Group:</strong> @Model.ResourceGroup</p>
+                    <p><strong>Deployment:</strong> @Model.DeploymentName</p>
+                    <p>📢 You'll receive real-time notifications about the deployment progress in the notification bell above.</p>
+                    @if (!string.IsNullOrEmpty(Model.DeploymentMessage))
+                    {
+                        <p>@Model.DeploymentMessage</p>
+                    }
+                }
                 else if (Model.DeploymentStatus == "error")
                 {
                     <h4>🛑 Deployment Failed</h4>

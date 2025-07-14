@@ -29,4 +29,20 @@ namespace AzureDeploymentWeb.Models
         public bool IsRunning { get; set; }
         public bool HasError { get; set; }
     }
+
+    public class DeploymentNotification
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string DeploymentName { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+        public TimeSpan? Duration => EndTime?.Subtract(StartTime);
+        public string ResourceGroup { get; set; } = string.Empty;
+        public string? Message { get; set; }
+        public bool IsSuccessful => Status == "Succeeded";
+        public bool IsRunning => Status == "Running" || Status == "Accepted" || Status == "Creating";
+        public bool HasError => Status == "Failed" || Status == "Canceled";
+        public bool IsCompleted => IsSuccessful || HasError;
+    }
 }

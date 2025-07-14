@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using AzureDeploymentWeb.Models;
 using AzureDeploymentWeb.Services;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AzureDeploymentWeb.Controllers
 {
@@ -11,11 +12,16 @@ namespace AzureDeploymentWeb.Controllers
     {
         private readonly IAzureDeploymentService _deploymentService;
         private readonly IConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
 
-        public DeploymentController(IAzureDeploymentService deploymentService, IConfiguration configuration)
+        public DeploymentController(
+            IAzureDeploymentService deploymentService, 
+            IConfiguration configuration,
+            IServiceProvider serviceProvider)
         {
             _deploymentService = deploymentService;
             _configuration = configuration;
+            _serviceProvider = serviceProvider;
         }
 
         public IActionResult Index()
@@ -57,20 +63,29 @@ namespace AzureDeploymentWeb.Controllers
 
                 // Generate deployment name
                 var deploymentName = $"webapp-deployment-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
+                var startTime = DateTime.UtcNow;
 
-                // Deploy template
-                var result = await _deploymentService.DeployTemplateAsync(templateContent, parametersContent, deploymentName);
+                // Start async deployment
+                var result = await _deploymentService.StartAsyncDeploymentAsync(templateContent, parametersContent, deploymentName);
 
                 if (result.Success)
                 {
-                    model.DeploymentStatus = "success";
-                    model.DeploymentMessage = "Resources deployed successfully!";
+                    // Start tracking the deployment
+                    var userName = User.Identity?.Name ?? "unknown";
+                    var monitoringService = _serviceProvider.GetServices<IHostedService>()
+                        .OfType<DeploymentMonitoringService>()
+                        .FirstOrDefault();
+                    
+                    monitoringService?.TrackDeployment(deploymentName, userName, startTime);
+
+                    model.DeploymentStatus = "started";
+                    model.DeploymentMessage = "Deployment started successfully! You'll receive notifications as it progresses.";
                     model.DeploymentName = deploymentName;
                 }
                 else
                 {
                     model.DeploymentStatus = "error";
-                    model.DeploymentMessage = result.Error ?? "Unknown error occurred";
+                    model.DeploymentMessage = result.Error ?? "Failed to start deployment";
                     model.DeploymentName = deploymentName;
                 }
             }

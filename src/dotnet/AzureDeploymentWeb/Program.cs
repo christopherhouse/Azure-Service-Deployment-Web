@@ -1,17 +1,41 @@
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using AzureDeploymentWeb.Services;
+using AzureDeploymentWeb.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
+var clientId = builder.Configuration["AzureAd:ClientId"];
+var clientSecret = builder.Configuration["AzureAd:ClientSecret"];
 
-builder.Services.AddControllersWithViews()
-    .AddMicrosoftIdentityUI();
+// Add services to the container.
+var controllersBuilder = builder.Services.AddControllersWithViews();
+
+// Only configure Microsoft Identity Web if ClientId is provided
+if (!string.IsNullOrEmpty(clientId))
+{
+    builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
+    controllersBuilder.AddMicrosoftIdentityUI();
+}
 
 // Register Azure deployment service
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
+
+// Add SignalR
+var azureSignalRConnectionString = builder.Configuration["AzureSignalR:ConnectionString"];
+if (!string.IsNullOrEmpty(azureSignalRConnectionString))
+{
+    Console.WriteLine("Using Azure SignalR Service");
+    builder.Services.AddSignalR().AddAzureSignalR(azureSignalRConnectionString);
+}
+else
+{
+    Console.WriteLine("Using local SignalR (no Azure SignalR connection string provided)");
+    builder.Services.AddSignalR();
+}
+
+// Add background service for deployment monitoring
+builder.Services.AddHostedService<DeploymentMonitoringService>();
 
 var app = builder.Build();
 
@@ -28,11 +52,18 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// Only use authentication/authorization if Microsoft Identity Web is configured
+if (!string.IsNullOrEmpty(clientId))
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Map SignalR hub
+app.MapHub<DeploymentHub>("/deploymentHub");
 
 app.Run();

@@ -6,7 +6,10 @@ A .NET 8 MVC web application that enables you to deploy Azure resources by uploa
 
 - **File Upload Interface**: Upload ARM templates (.json) and parameter files (.json) using Razor views
 - **Azure Authentication**: Secure authentication using Microsoft Entra ID (Azure AD) with Microsoft.Identity.Web
-- **Real-time Deployment Status**: Visual feedback during deployment with loading indicators
+- **Real-time Deployment Notifications**: SignalR-powered notifications that update automatically without page refresh
+- **Visual Status Indicators**: Color-coded deployment status with success/failure indicators
+- **Deployment Monitoring**: Track deployment progress with start time, duration, and resource group information
+- **Notification Management**: Individual and bulk notification clearing with persistent notifications until dismissed
 - **Success/Error Handling**: Clear success messages with emojis and detailed error reporting
 - **Configuration**: Easy configuration through appsettings.json
 
@@ -49,9 +52,14 @@ A .NET 8 MVC web application that enables you to deploy Azure resources by uploa
      "Azure": {
        "SubscriptionId": "your-subscription-id-here",
        "ResourceGroup": "your-resource-group-here"
+     },
+     "AzureSignalR": {
+       "ConnectionString": ""
      }
    }
    ```
+
+   **Note**: The `AzureSignalR` section is optional. If no connection string is provided, the application will use local SignalR. To use Azure SignalR Service for production scaling, provide the connection string from your Azure SignalR Service instance.
 
 ### 3. Run the Application
 
@@ -99,6 +107,7 @@ src/dotnet/AzureDeploymentWeb/
 ## 🔧 Technologies Used
 
 - **ASP.NET Core 8.0**: Web framework
+- **SignalR**: Real-time web functionality for deployment notifications (local or Azure SignalR Service)
 - **Microsoft.Identity.Web**: Azure AD authentication
 - **Azure.ResourceManager**: Azure resource management
 - **Razor Views**: Server-side UI rendering

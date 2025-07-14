@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AzureDeploymentWeb.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         .deployment-tool-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -45,6 +46,14 @@
             border-radius: 5px;
             margin-top: 1rem;
         }
+        .status-started {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
         .spinner {
             display: inline-block;
             width: 20px;
@@ -56,6 +65,70 @@
         }
         @@keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        /* Notification Styles */
+        .notification-dropdown {
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-success {
+            border-left: 4px solid #28a745;
+        }
+        .notification-error {
+            border-left: 4px solid #dc3545;
+        }
+        .notification-running {
+            border-left: 4px solid #17a2b8;
+        }
+        .notification-header {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .notification-details {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 2px;
+        }
+        .notification-time {
+            font-size: 0.75rem;
+            color: #8a8a8a;
+        }
+        .notification-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            border: none;
+            background: none;
+            color: #6c757d;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .notification-close:hover {
+            color: #dc3545;
+        }
+        #notificationBadge {
+            font-size: 0.6rem;
+            padding: 0.2em 0.4em;
+        }
+        .btn-link {
+            color: #495057;
+            text-decoration: none;
+        }
+        .btn-link:hover {
+            color: #007bff;
         }
     </style>
 </head>
@@ -80,7 +153,33 @@
                             </li>
                         }
                     </ul>
-                    <partial name="_LoginPartial" />
+                    <div class="d-flex align-items-center">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <!-- Notification Bell -->
+                            <div class="dropdown me-3">
+                                <button class="btn btn-link position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell fs-5"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">
+                                        0
+                                    </span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                        <h6 class="mb-0">Deployment Notifications</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clearAllNotifications">Clear All</button>
+                                    </div>
+                                    <div id="notificationList">
+                                        <div class="px-3 py-4 text-center text-muted">
+                                            <i class="fas fa-inbox fs-4 mb-2"></i>
+                                            <p class="mb-0">No notifications</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
@@ -98,7 +197,9 @@
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/@@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/notifications.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

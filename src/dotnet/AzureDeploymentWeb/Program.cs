@@ -1,6 +1,7 @@
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using AzureDeploymentWeb.Services;
+using AzureDeploymentWeb.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,12 @@ builder.Services.AddControllersWithViews()
 
 // Register Azure deployment service
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
+
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Add background service for deployment monitoring
+builder.Services.AddHostedService<DeploymentMonitoringService>();
 
 var app = builder.Build();
 
@@ -34,5 +41,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Map SignalR hub
+app.MapHub<DeploymentHub>("/deploymentHub");
 
 app.Run();

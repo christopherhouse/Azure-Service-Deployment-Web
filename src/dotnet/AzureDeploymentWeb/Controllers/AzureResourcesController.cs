@@ -4,21 +4,41 @@ using AzureDeploymentWeb.Services;
 
 namespace AzureDeploymentWeb.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AzureResourcesController : ControllerBase
     {
         private readonly IAzureResourceDiscoveryService _discoveryService;
+        private readonly IConfiguration _configuration;
 
-        public AzureResourcesController(IAzureResourceDiscoveryService discoveryService)
+        public AzureResourcesController(IAzureResourceDiscoveryService discoveryService, IConfiguration configuration)
         {
             _discoveryService = discoveryService;
+            _configuration = configuration;
+        }
+
+        private bool IsAuthenticationConfigured()
+        {
+            var clientId = _configuration["AzureAd:ClientId"];
+            var clientSecret = _configuration["AzureAd:ClientSecret"];
+            return !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret);
+        }
+
+        private IActionResult CheckAuthorizationIfConfigured()
+        {
+            if (IsAuthenticationConfigured() && !User.Identity?.IsAuthenticated == true)
+            {
+                return Unauthorized();
+            }
+            return null;
         }
 
         [HttpGet("subscriptions")]
         public async Task<IActionResult> GetSubscriptions()
         {
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
             try
             {
                 var subscriptions = await _discoveryService.GetSubscriptionsAsync();
@@ -33,6 +53,9 @@ namespace AzureDeploymentWeb.Controllers
         [HttpGet("resourcegroups/{subscriptionId}")]
         public async Task<IActionResult> GetResourceGroups(string subscriptionId)
         {
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
             try
             {
                 if (string.IsNullOrEmpty(subscriptionId))

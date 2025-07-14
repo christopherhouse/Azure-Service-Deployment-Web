@@ -7,22 +7,43 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AzureDeploymentWeb.Controllers
 {
-    [Authorize]
     public class DeploymentController : Controller
     {
         private readonly IAzureDeploymentService _deploymentService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConfiguration _configuration;
 
         public DeploymentController(
             IAzureDeploymentService deploymentService, 
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IConfiguration configuration)
         {
             _deploymentService = deploymentService;
             _serviceProvider = serviceProvider;
+            _configuration = configuration;
+        }
+
+        private bool IsAuthenticationConfigured()
+        {
+            var clientId = _configuration["AzureAd:ClientId"];
+            var clientSecret = _configuration["AzureAd:ClientSecret"];
+            return !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret);
+        }
+
+        private IActionResult CheckAuthorizationIfConfigured()
+        {
+            if (IsAuthenticationConfigured() && !User.Identity?.IsAuthenticated == true)
+            {
+                return Challenge();
+            }
+            return null;
         }
 
         public IActionResult Index()
         {
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
             var model = new DeploymentViewModel();
             return View(model);
         }
@@ -31,6 +52,9 @@ namespace AzureDeploymentWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deploy(DeploymentViewModel model)
         {
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
             if (!ModelState.IsValid)
             {
                 return View("Index", model);
@@ -97,6 +121,9 @@ namespace AzureDeploymentWeb.Controllers
         [HttpGet]
         public async Task<IActionResult> Status(string deploymentName, string subscriptionId, string resourceGroupName)
         {
+            var authResult = CheckAuthorizationIfConfigured();
+            if (authResult != null) return authResult;
+
             if (string.IsNullOrEmpty(deploymentName))
             {
                 return BadRequest("Deployment name is required");

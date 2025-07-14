@@ -1,8 +1,5 @@
-@description('The name of the workload')
-param workloadName string
-
-@description('The environment name (e.g., dev, staging, prod)')
-param environmentName string
+@description('The name of the SignalR Service')
+param name string
 
 @description('The location for the resource')
 param location string = resourceGroup().location
@@ -13,11 +10,8 @@ param tags object = {}
 @description('The resource ID of the Log Analytics workspace for diagnostic settings')
 param logAnalyticsWorkspaceId string
 
-// Generate unique name following Azure Well-Architected Framework naming convention
-var signalRName = 'signalr-${workloadName}-${environmentName}-${uniqueString(resourceGroup().id)}'
-
 resource signalR 'Microsoft.SignalRService/signalR@2024-03-01' = {
-  name: signalRName
+  name: name
   location: location
   tags: tags
   sku: {
@@ -58,7 +52,7 @@ resource signalR 'Microsoft.SignalRService/signalR@2024-03-01' = {
 
 // Diagnostic settings for SignalR Service
 resource signalRDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'diag-${signalRName}'
+  name: 'diag-${name}'
   scope: signalR
   properties: {
     workspaceId: logAnalyticsWorkspaceId

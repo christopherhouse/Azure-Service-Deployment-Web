@@ -1,8 +1,5 @@
-@description('The name of the workload')
-param workloadName string
-
-@description('The environment name (e.g., dev, staging, prod)')
-param environmentName string
+@description('The name of the Redis Cache')
+param name string
 
 @description('The location for the resource')
 param location string = resourceGroup().location
@@ -13,11 +10,8 @@ param tags object = {}
 @description('The resource ID of the Log Analytics workspace for diagnostic settings')
 param logAnalyticsWorkspaceId string
 
-// Generate unique name following Azure Well-Architected Framework naming convention
-var redisName = 'redis-${workloadName}-${environmentName}-${uniqueString(resourceGroup().id)}'
-
 resource redisCache 'Microsoft.Cache/redis@2024-03-01' = {
-  name: redisName
+  name: name
   location: location
   tags: tags
   properties: {
@@ -38,7 +32,7 @@ resource redisCache 'Microsoft.Cache/redis@2024-03-01' = {
 
 // Diagnostic settings for Redis Cache
 resource redisDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'diag-${redisName}'
+  name: 'diag-${name}'
   scope: redisCache
   properties: {
     workspaceId: logAnalyticsWorkspaceId

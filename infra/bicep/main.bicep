@@ -22,12 +22,19 @@ param tags object = {
   deployedBy: 'bicep'
 }
 
+// Generate resource names following Azure Well-Architected Framework naming convention
+var logAnalyticsWorkspaceName = 'log-${workloadName}-${environmentName}'
+var keyVaultName = 'kv-${workloadName}-${environmentName}'
+var redisCacheName = 'redis-${workloadName}-${environmentName}'
+var signalRName = 'signalr-${workloadName}-${environmentName}'
+var appServicePlanName = 'asp-${workloadName}-${environmentName}'
+var webAppName = 'app-${workloadName}-${environmentName}'
+
 // Deploy Log Analytics workspace first as other resources depend on it
 module logAnalytics 'modules/log-analytics.bicep' = {
-  name: 'deploy-loganalytics-${uniqueString(deployment().name, location)}'
+  name: 'deploy-loganalytics'
   params: {
-    workloadName: workloadName
-    environmentName: environmentName
+    name: logAnalyticsWorkspaceName
     location: location
     retentionInDays: logAnalyticsRetentionInDays
     tags: tags
@@ -36,10 +43,9 @@ module logAnalytics 'modules/log-analytics.bicep' = {
 
 // Deploy Key Vault
 module keyVault 'modules/key-vault.bicep' = {
-  name: 'deploy-keyvault-${uniqueString(deployment().name, location)}'
+  name: 'deploy-keyvault'
   params: {
-    workloadName: workloadName
-    environmentName: environmentName
+    name: keyVaultName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
     tags: tags
@@ -48,10 +54,9 @@ module keyVault 'modules/key-vault.bicep' = {
 
 // Deploy Redis Cache
 module redisCache 'modules/redis.bicep' = {
-  name: 'deploy-redis-${uniqueString(deployment().name, location)}'
+  name: 'deploy-redis'
   params: {
-    workloadName: workloadName
-    environmentName: environmentName
+    name: redisCacheName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
     tags: tags
@@ -60,10 +65,9 @@ module redisCache 'modules/redis.bicep' = {
 
 // Deploy SignalR Service
 module signalR 'modules/signalr.bicep' = {
-  name: 'deploy-signalr-${uniqueString(deployment().name, location)}'
+  name: 'deploy-signalr'
   params: {
-    workloadName: workloadName
-    environmentName: environmentName
+    name: signalRName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
     tags: tags
@@ -72,9 +76,10 @@ module signalR 'modules/signalr.bicep' = {
 
 // Deploy App Service Plan and Web App
 module appService 'modules/app-service.bicep' = {
-  name: 'deploy-appservice-${uniqueString(deployment().name, location)}'
+  name: 'deploy-appservice'
   params: {
-    workloadName: workloadName
+    appServicePlanName: appServicePlanName
+    webAppName: webAppName
     environmentName: environmentName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId

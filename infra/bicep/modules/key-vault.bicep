@@ -1,8 +1,5 @@
-@description('The name of the workload')
-param workloadName string
-
-@description('The environment name (e.g., dev, staging, prod)')
-param environmentName string
+@description('The name of the Key Vault')
+param name string
 
 @description('The location for the resource')
 param location string = resourceGroup().location
@@ -16,11 +13,8 @@ param logAnalyticsWorkspaceId string
 @description('The tenant ID for Key Vault access policies')
 param tenantId string = tenant().tenantId
 
-// Generate unique name following Azure Well-Architected Framework naming convention
-var keyVaultName = 'kv-${workloadName}-${environmentName}'
-
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
-  name: keyVaultName
+  name: name
   location: location
   tags: tags
   properties: {
@@ -46,7 +40,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
 
 // Diagnostic settings for Key Vault
 resource keyVaultDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'diag-${keyVaultName}'
+  name: 'diag-${name}'
   scope: keyVault
   properties: {
     workspaceId: logAnalyticsWorkspaceId

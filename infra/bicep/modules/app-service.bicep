@@ -1,7 +1,10 @@
-@description('The name of the workload')
-param workloadName string
+@description('The name of the App Service Plan')
+param appServicePlanName string
 
-@description('The environment name (e.g., dev, staging, prod)')
+@description('The name of the Web App')
+param webAppName string
+
+@description('The environment name for app settings')
 param environmentName string
 
 @description('The location for the resource')
@@ -12,10 +15,6 @@ param tags object = {}
 
 @description('The resource ID of the Log Analytics workspace for diagnostic settings')
 param logAnalyticsWorkspaceId string
-
-// Generate unique names following Azure Well-Architected Framework naming convention
-var appServicePlanName = 'asp-${workloadName}-${environmentName}-${uniqueString(resourceGroup().id)}'
-var webAppName = 'app-${workloadName}-${environmentName}-${uniqueString(resourceGroup().id)}'
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName

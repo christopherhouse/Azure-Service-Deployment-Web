@@ -18,8 +18,17 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 
 // Add SignalR
-Console.WriteLine("Azure SignalR Connection String: " + builder.Configuration["AzureSignalR:ConnectionString"]);
-builder.Services.AddSignalR().AddAzureSignalR(builder.Configuration["AzureSignalR:ConnectionString"]);
+var azureSignalRConnectionString = builder.Configuration["AzureSignalR:ConnectionString"];
+if (!string.IsNullOrEmpty(azureSignalRConnectionString))
+{
+    Console.WriteLine("Using Azure SignalR Service");
+    builder.Services.AddSignalR().AddAzureSignalR(azureSignalRConnectionString);
+}
+else
+{
+    Console.WriteLine("Using local SignalR (no Azure SignalR connection string provided)");
+    builder.Services.AddSignalR();
+}
 
 // Add background service for deployment monitoring
 builder.Services.AddHostedService<DeploymentMonitoringService>();

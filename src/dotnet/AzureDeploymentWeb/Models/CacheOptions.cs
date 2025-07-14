@@ -4,7 +4,6 @@ namespace AzureDeploymentWeb.Models
     {
         public const string SectionName = "Cache";
         
-        public string Provider { get; set; } = "Memory";
         public RedisOptions Redis { get; set; } = new();
         public int SubscriptionsCacheDurationMinutes { get; set; } = 60;
         public int ResourceGroupsCacheDurationMinutes { get; set; } = 30;

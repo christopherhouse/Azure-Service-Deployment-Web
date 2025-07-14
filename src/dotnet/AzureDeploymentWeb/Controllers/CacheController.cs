@@ -66,9 +66,11 @@ namespace AzureDeploymentWeb.Controllers
         [HttpGet("info")]
         public IActionResult GetCacheInfo()
         {
+            var provider = !string.IsNullOrEmpty(_cacheOptions.Redis.ConnectionString) ? "Redis" : "Memory";
+            
             return Ok(new
             {
-                provider = _cacheOptions.Provider,
+                provider = provider,
                 subscriptionsCacheDuration = _cacheOptions.SubscriptionsCacheDurationMinutes,
                 resourceGroupsCacheDuration = _cacheOptions.ResourceGroupsCacheDurationMinutes,
                 redisConfigured = !string.IsNullOrEmpty(_cacheOptions.Redis.ConnectionString)

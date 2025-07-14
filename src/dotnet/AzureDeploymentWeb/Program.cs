@@ -15,8 +15,7 @@ builder.Configuration.GetSection(CacheOptions.SectionName).Bind(cacheOptions);
 builder.Services.Configure<CacheOptions>(builder.Configuration.GetSection(CacheOptions.SectionName));
 
 // Configure caching services
-if (cacheOptions.Provider.Equals("Redis", StringComparison.OrdinalIgnoreCase) && 
-    !string.IsNullOrEmpty(cacheOptions.Redis.ConnectionString))
+if (!string.IsNullOrEmpty(cacheOptions.Redis.ConnectionString))
 {
     Console.WriteLine("Using Redis distributed cache");
     builder.Services.AddStackExchangeRedisCache(options =>

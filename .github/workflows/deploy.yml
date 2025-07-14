@@ -82,5 +82,5 @@ jobs:
     - name: Deploy Web App
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ steps.bicep-deploy.outputs.web_app_name }}
+        app-name: ${{ steps.bicep-deploy.outputs.webAppName }}
         package: ./publish

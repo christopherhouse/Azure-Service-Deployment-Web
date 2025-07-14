@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "dotnet: build",
+            "program": "${workspaceFolder}/src/dotnet/AzureDeploymentWeb/bin/Debug/net8.0/AzureDeploymentWeb.dll",
+            "args": [],
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "Now listening on: (https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/src/dotnet/AzureDeploymentWeb/Views"
+            }
+        }
+    ]
+}

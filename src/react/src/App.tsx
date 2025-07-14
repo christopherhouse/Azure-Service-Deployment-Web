@@ -5,6 +5,8 @@ import { msalConfig } from './authConfig';
 import { FileUpload } from './components/FileUpload';
 import { DeploymentStatus, DeploymentState } from './components/DeploymentStatus';
 import { LoginButton } from './components/LoginButton';
+import { SubscriptionSelector } from './components/SubscriptionSelector';
+import { ResourceGroupSelector } from './components/ResourceGroupSelector';
 import { AzureDeploymentService } from './services/azureDeploymentService';
 import { useAzureCredential } from './hooks/useAzureCredential';
 import './App.css';
@@ -17,6 +19,8 @@ const AppContent: React.FC = () => {
   const [deploymentState, setDeploymentState] = useState<DeploymentState>('idle');
   const [deploymentMessage, setDeploymentMessage] = useState<string>('');
   const [deploymentName, setDeploymentName] = useState<string>('');
+  const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<string | null>(null);
+  const [selectedResourceGroupName, setSelectedResourceGroupName] = useState<string | null>(null);
   
   const credential = useAzureCredential();
 
@@ -45,6 +49,16 @@ const AppContent: React.FC = () => {
       return;
     }
 
+    if (!selectedSubscriptionId) {
+      alert('Please select a subscription');
+      return;
+    }
+
+    if (!selectedResourceGroupName) {
+      alert('Please select a resource group');
+      return;
+    }
+
     try {
       setDeploymentState('running');
       const newDeploymentName = generateDeploymentName();
@@ -61,6 +75,8 @@ const AppContent: React.FC = () => {
         template,
         parameters,
         deploymentName: newDeploymentName,
+        subscriptionId: selectedSubscriptionId,
+        resourceGroupName: selectedResourceGroupName,
       });
 
       if (result.success) {
@@ -76,7 +92,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const canDeploy = templateFile && parametersFile && credential && deploymentState !== 'running';
+  const canDeploy = templateFile && parametersFile && credential && selectedSubscriptionId && selectedResourceGroupName && deploymentState !== 'running';
 
   return (
     <div className="App">
@@ -90,6 +106,19 @@ const AppContent: React.FC = () => {
         
         {credential && (
           <>
+            <SubscriptionSelector
+              credential={credential}
+              selectedSubscriptionId={selectedSubscriptionId}
+              onSubscriptionChange={setSelectedSubscriptionId}
+            />
+            
+            <ResourceGroupSelector
+              credential={credential}
+              subscriptionId={selectedSubscriptionId}
+              selectedResourceGroupName={selectedResourceGroupName}
+              onResourceGroupChange={setSelectedResourceGroupName}
+            />
+            
             <FileUpload
               onTemplateFileChange={setTemplateFile}
               onParametersFileChange={setParametersFile}
@@ -106,17 +135,19 @@ const AppContent: React.FC = () => {
                 {deploymentState === 'running' ? '⏳ Deploying...' : '🚀 Deploy to Azure'}
               </button>
               
-              <div className="deployment-info">
-                <p><strong>Target Subscription:</strong> {process.env.REACT_APP_AZURE_SUBSCRIPTION_ID || 'Not configured'}</p>
-                <p><strong>Target Resource Group:</strong> {process.env.REACT_APP_AZURE_RESOURCE_GROUP || 'Not configured'}</p>
-              </div>
+              {selectedSubscriptionId && selectedResourceGroupName && (
+                <div className="deployment-info">
+                  <p><strong>Target Subscription:</strong> {selectedSubscriptionId}</p>
+                  <p><strong>Target Resource Group:</strong> {selectedResourceGroupName}</p>
+                </div>
+              )}
             </div>
             
             <DeploymentStatus
               state={deploymentState}
               message={deploymentMessage}
               deploymentName={deploymentName}
-              resourceGroup={process.env.REACT_APP_AZURE_RESOURCE_GROUP}
+              resourceGroup={selectedResourceGroupName || undefined}
             />
           </>
         )}

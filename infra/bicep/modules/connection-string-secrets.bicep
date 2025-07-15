@@ -11,23 +11,23 @@ param signalRResourceName string
 param tags object = {}
 
 // Reference existing Redis resource
-resource redisCache 'Microsoft.Cache/Redis@2023-07-01' existing = {
+resource redisCache 'Microsoft.Cache/redis@2024-03-01' existing = {
   name: redisResourceName
 }
 
 // Reference existing SignalR resource
-resource signalR 'Microsoft.SignalRService/SignalR@2023-10-01' existing = {
+resource signalR 'Microsoft.SignalRService/signalR@2024-03-01' existing = {
   name: signalRResourceName
 }
 
 // Get Redis connection string
-var redisKeys = listKeys(redisCache.id, '2023-07-01')
+var redisKeys = redisCache.listKeys()
 var redisHostName = redisCache.properties.hostName
 var redisSslPort = '6380'
 var redisFullConnectionString = '${redisHostName}:${redisSslPort},password=${redisKeys.primaryKey},ssl=True,abortConnect=False'
 
 // Get SignalR connection string
-var signalRKeys = listKeys(signalR.id, '2023-10-01')
+var signalRKeys = signalR.listKeys()
 var signalRConnectionString = signalRKeys.primaryConnectionString
 
 // Create Redis connection string secret

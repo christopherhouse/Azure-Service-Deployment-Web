@@ -42,8 +42,29 @@ namespace AzureDeploymentWeb.Services
             IOptions<CacheOptions> cacheOptions,
             ILogger<AzureResourceDiscoveryService> logger)
         {
-            // Use DefaultAzureCredential for authentication
-            var credential = new DefaultAzureCredential();
+            // Detect if running locally
+            var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
+            DefaultAzureCredential credential;
+            if (isLocal)
+            {
+                credential = new DefaultAzureCredential();
+            }
+            else
+            {
+                // Use user assigned managed identity client id if provided
+                var uamiClientId = Environment.GetEnvironmentVariable("AzureAd__ClientId");
+                if (!string.IsNullOrEmpty(uamiClientId))
+                {
+                    credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                    {
+                        ManagedIdentityClientId = uamiClientId
+                    });
+                }
+                else
+                {
+                    credential = new DefaultAzureCredential();
+                }
+            }
             _armClient = new ArmClient(credential);
             _cache = cache;
             _cacheOptions = cacheOptions.Value;
@@ -90,24 +111,21 @@ namespace AzureDeploymentWeb.Services
                 // Sort subscriptions alphabetically by display name
                 var sortedSubscriptions = subscriptions.OrderBy(s => s.DisplayName).ToList();
 
-                // Only cache if there are results
-                if (sortedSubscriptions.Count > 0)
+                // Cache the result
+                try
                 {
-                    try
+                    var cacheData = JsonSerializer.Serialize(sortedSubscriptions);
+                    var cacheOptions = new DistributedCacheEntryOptions
                     {
-                        var cacheData = JsonSerializer.Serialize(sortedSubscriptions);
-                        var cacheOptions = new DistributedCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.SubscriptionsCacheDurationMinutes)
-                        };
-                        await _cache.SetStringAsync(SubscriptionsCacheKey, cacheData, cacheOptions);
-                        _logger.LogInformation("Cached {Count} subscriptions for {Duration} minutes", 
-                            sortedSubscriptions.Count, _cacheOptions.SubscriptionsCacheDurationMinutes);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to cache subscriptions");
-                    }
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.SubscriptionsCacheDurationMinutes)
+                    };
+                    await _cache.SetStringAsync(SubscriptionsCacheKey, cacheData, cacheOptions);
+                    _logger.LogInformation("Cached {Count} subscriptions for {Duration} minutes", 
+                        sortedSubscriptions.Count, _cacheOptions.SubscriptionsCacheDurationMinutes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to cache subscriptions");
                 }
 
                 return sortedSubscriptions;
@@ -169,24 +187,21 @@ namespace AzureDeploymentWeb.Services
                 // Sort resource groups alphabetically by name
                 var sortedResourceGroups = resourceGroups.OrderBy(rg => rg.Name).ToList();
 
-                // Only cache if there are results
-                if (sortedResourceGroups.Count > 0)
+                // Cache the result
+                try
                 {
-                    try
+                    var cacheData = JsonSerializer.Serialize(sortedResourceGroups);
+                    var cacheOptions = new DistributedCacheEntryOptions
                     {
-                        var cacheData = JsonSerializer.Serialize(sortedResourceGroups);
-                        var cacheOptions = new DistributedCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.ResourceGroupsCacheDurationMinutes)
-                        };
-                        await _cache.SetStringAsync(cacheKey, cacheData, cacheOptions);
-                        _logger.LogInformation("Cached {Count} resource groups for subscription {SubscriptionId} for {Duration} minutes", 
-                            sortedResourceGroups.Count, subscriptionId, _cacheOptions.ResourceGroupsCacheDurationMinutes);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to cache resource groups for subscription {SubscriptionId}", subscriptionId);
-                    }
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.ResourceGroupsCacheDurationMinutes)
+                    };
+                    await _cache.SetStringAsync(cacheKey, cacheData, cacheOptions);
+                    _logger.LogInformation("Cached {Count} resource groups for subscription {SubscriptionId} for {Duration} minutes", 
+                        sortedResourceGroups.Count, subscriptionId, _cacheOptions.ResourceGroupsCacheDurationMinutes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to cache resource groups for subscription {SubscriptionId}", subscriptionId);
                 }
 
                 return sortedResourceGroups;

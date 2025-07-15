@@ -90,21 +90,24 @@ namespace AzureDeploymentWeb.Services
                 // Sort subscriptions alphabetically by display name
                 var sortedSubscriptions = subscriptions.OrderBy(s => s.DisplayName).ToList();
 
-                // Cache the result
-                try
+                // Only cache if there are results
+                if (sortedSubscriptions.Count > 0)
                 {
-                    var cacheData = JsonSerializer.Serialize(sortedSubscriptions);
-                    var cacheOptions = new DistributedCacheEntryOptions
+                    try
                     {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.SubscriptionsCacheDurationMinutes)
-                    };
-                    await _cache.SetStringAsync(SubscriptionsCacheKey, cacheData, cacheOptions);
-                    _logger.LogInformation("Cached {Count} subscriptions for {Duration} minutes", 
-                        sortedSubscriptions.Count, _cacheOptions.SubscriptionsCacheDurationMinutes);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to cache subscriptions");
+                        var cacheData = JsonSerializer.Serialize(sortedSubscriptions);
+                        var cacheOptions = new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.SubscriptionsCacheDurationMinutes)
+                        };
+                        await _cache.SetStringAsync(SubscriptionsCacheKey, cacheData, cacheOptions);
+                        _logger.LogInformation("Cached {Count} subscriptions for {Duration} minutes", 
+                            sortedSubscriptions.Count, _cacheOptions.SubscriptionsCacheDurationMinutes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cache subscriptions");
+                    }
                 }
 
                 return sortedSubscriptions;
@@ -166,21 +169,24 @@ namespace AzureDeploymentWeb.Services
                 // Sort resource groups alphabetically by name
                 var sortedResourceGroups = resourceGroups.OrderBy(rg => rg.Name).ToList();
 
-                // Cache the result
-                try
+                // Only cache if there are results
+                if (sortedResourceGroups.Count > 0)
                 {
-                    var cacheData = JsonSerializer.Serialize(sortedResourceGroups);
-                    var cacheOptions = new DistributedCacheEntryOptions
+                    try
                     {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.ResourceGroupsCacheDurationMinutes)
-                    };
-                    await _cache.SetStringAsync(cacheKey, cacheData, cacheOptions);
-                    _logger.LogInformation("Cached {Count} resource groups for subscription {SubscriptionId} for {Duration} minutes", 
-                        sortedResourceGroups.Count, subscriptionId, _cacheOptions.ResourceGroupsCacheDurationMinutes);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to cache resource groups for subscription {SubscriptionId}", subscriptionId);
+                        var cacheData = JsonSerializer.Serialize(sortedResourceGroups);
+                        var cacheOptions = new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_cacheOptions.ResourceGroupsCacheDurationMinutes)
+                        };
+                        await _cache.SetStringAsync(cacheKey, cacheData, cacheOptions);
+                        _logger.LogInformation("Cached {Count} resource groups for subscription {SubscriptionId} for {Duration} minutes", 
+                            sortedResourceGroups.Count, subscriptionId, _cacheOptions.ResourceGroupsCacheDurationMinutes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cache resource groups for subscription {SubscriptionId}", subscriptionId);
+                    }
                 }
 
                 return sortedResourceGroups;

@@ -55,15 +55,25 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     reserved: true // Required for Linux
     siteConfig: {
       linuxFxVersion: 'DOTNET|8.0'
+      netFrameworkVersion: 'v4.0'
+      numberOfWorkers: 1
       alwaysOn: true
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
       http20Enabled: true
       publicNetworkAccess: 'Enabled'
+      keyVaultReferenceIdentity: 'SystemAssigned'
       appSettings: [
         {
           name: 'ASPNETCORE_ENVIRONMENT'
           value: environmentName
+        }
+      ]
+      virtualApplications: [
+        {
+          virtualPath: '/'
+          physicalPath: 'site\\wwwroot'
+          preloadEnabled: true
         }
       ]
     }

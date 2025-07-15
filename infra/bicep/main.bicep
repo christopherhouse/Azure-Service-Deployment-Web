@@ -15,6 +15,19 @@ param location string = resourceGroup().location
 @maxValue(730)
 param logAnalyticsRetentionInDays int = 30
 
+@description('The Azure AD instance URL')
+param azureAdInstance string
+
+@description('The client ID of the app registration used for authentication')
+param azureAdClientId string
+
+@description('The client secret of the app registration used for authentication')
+@secure()
+param azureAdClientSecret string
+
+@description('The callback path for authentication')
+param azureAdCallbackPath string
+
 @description('Tags to apply to all resources')
 param tags object = {
   environment: environmentName
@@ -29,6 +42,7 @@ var redisCacheName = 'redis-${workloadName}-${environmentName}'
 var signalRName = 'signalr-${workloadName}-${environmentName}'
 var appServicePlanName = 'asp-${workloadName}-${environmentName}'
 var webAppName = 'app-${workloadName}-${environmentName}'
+var userAssignedIdentityName = 'id-${workloadName}-${environmentName}'
 
 // Deploy Log Analytics workspace first as other resources depend on it
 module logAnalytics 'modules/log-analytics.bicep' = {
@@ -41,6 +55,16 @@ module logAnalytics 'modules/log-analytics.bicep' = {
   }
 }
 
+// Deploy User Assigned Managed Identity
+module managedIdentity 'modules/managed-identity.bicep' = {
+  name: 'deploy-managedidentity-${deployment().name}'
+  params: {
+    name: userAssignedIdentityName
+    location: location
+    tags: tags
+  }
+}
+
 // Deploy Key Vault
 module keyVault 'modules/key-vault.bicep' = {
   name: 'deploy-keyvault-${deployment().name}'
@@ -48,6 +72,8 @@ module keyVault 'modules/key-vault.bicep' = {
     name: keyVaultName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
+    azureAdClientSecret: azureAdClientSecret
+    userAssignedManagedIdentityPrincipalId: managedIdentity.outputs.principalId
     tags: tags
   }
 }
@@ -83,6 +109,11 @@ module appService 'modules/app-service.bicep' = {
     environmentName: environmentName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
+    userAssignedManagedIdentityId: managedIdentity.outputs.identityId
+    azureAdInstance: azureAdInstance
+    azureAdClientId: azureAdClientId
+    azureAdClientSecretUri: keyVault.outputs.azureAdClientSecretUri
+    azureAdCallbackPath: azureAdCallbackPath
     tags: tags
   }
 }
@@ -102,6 +133,12 @@ output keyVaultName string = keyVault.outputs.keyVaultName
 
 @description('The URI of the Key Vault')
 output keyVaultUri string = keyVault.outputs.keyVaultUri
+
+@description('The resource ID of the user assigned managed identity')
+output userAssignedManagedIdentityId string = managedIdentity.outputs.identityId
+
+@description('The name of the user assigned managed identity')
+output userAssignedManagedIdentityName string = managedIdentity.outputs.identityName
 
 @description('The resource ID of the Redis Cache')
 output redisCacheId string = redisCache.outputs.redisCacheId

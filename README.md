@@ -52,6 +52,10 @@ This repository includes a GitHub Actions workflow that automatically builds and
    - `AZURE_CLIENT_ID`: Application (client) ID of the service principal
    - `AZURE_TENANT_ID`: Directory (tenant) ID
    - `AZURE_SUBSCRIPTION_ID`: Your Azure subscription ID
+   - `AZURE_AD_INSTANCE`: Azure AD instance URL (e.g., `https://login.microsoftonline.com`)
+   - `AZURE_AD_CLIENT_ID`: Application (client) ID for web app authentication
+   - `AZURE_AD_CLIENT_SECRET`: Client secret for web app authentication
+   - `AZURE_AD_CALLBACK_PATH`: Authentication callback path (e.g., `/signin-oidc`)
 
 3. **Trigger Deployment**:
    - Push to the `main` branch to trigger automatic deployment
@@ -224,6 +228,10 @@ This repository includes a comprehensive CI/CD pipeline (`.github/workflows/depl
 - `AZURE_CLIENT_ID`: Service principal client ID
 - `AZURE_TENANT_ID`: Azure tenant ID  
 - `AZURE_SUBSCRIPTION_ID`: Azure subscription ID
+- `AZURE_AD_INSTANCE`: Azure AD instance URL (e.g., `https://login.microsoftonline.com`)
+- `AZURE_AD_CLIENT_ID`: Application (client) ID for web app authentication
+- `AZURE_AD_CLIENT_SECRET`: Client secret for web app authentication
+- `AZURE_AD_CALLBACK_PATH`: Authentication callback path (e.g., `/signin-oidc`)
 
 ### Workflow Configuration
 The workflow can be customized via environment variables in the workflow file:

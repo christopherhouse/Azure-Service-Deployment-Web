@@ -13,6 +13,13 @@ param logAnalyticsWorkspaceId string
 @description('The tenant ID for Key Vault access policies')
 param tenantId string = tenant().tenantId
 
+@description('The Azure AD client secret to store in Key Vault')
+@secure()
+param azureAdClientSecret string
+
+@description('The principal ID of the user assigned managed identity to grant access')
+param userAssignedManagedIdentityPrincipalId string
+
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   name: name
   location: location
@@ -35,6 +42,27 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
       bypass: 'AzureServices'
       defaultAction: 'Allow'
     }
+  }
+}
+
+// Create Key Vault secret for Azure AD client secret
+resource azureAdClientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'azure-ad-client-secret'
+  parent: keyVault
+  properties: {
+    value: azureAdClientSecret
+    contentType: 'text/plain'
+  }
+}
+
+// Grant the user assigned managed identity Key Vault Secrets User role
+resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(keyVault.id, userAssignedManagedIdentityPrincipalId, '4633458b-17de-408a-b874-0445c86b69e6')
+  scope: keyVault
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
+    principalId: userAssignedManagedIdentityPrincipalId
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -75,3 +103,6 @@ output keyVaultName string = keyVault.name
 
 @description('The URI of the Key Vault')
 output keyVaultUri string = keyVault.properties.vaultUri
+
+@description('The URI of the Azure AD client secret in Key Vault')
+output azureAdClientSecretUri string = azureAdClientSecretSecret.properties.secretUri

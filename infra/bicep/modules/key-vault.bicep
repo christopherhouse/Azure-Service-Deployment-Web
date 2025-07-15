@@ -13,10 +13,6 @@ param logAnalyticsWorkspaceId string
 @description('The tenant ID for Key Vault access policies')
 param tenantId string = tenant().tenantId
 
-@description('The Azure AD client secret to store in Key Vault')
-@secure()
-param azureAdClientSecret string
-
 @description('The principal ID of the user assigned managed identity to grant access')
 param userAssignedManagedIdentityPrincipalId string
 
@@ -42,16 +38,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
       bypass: 'AzureServices'
       defaultAction: 'Allow'
     }
-  }
-}
-
-// Create Key Vault secret for Azure AD client secret
-resource azureAdClientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  name: 'azure-ad-client-secret'
-  parent: keyVault
-  properties: {
-    value: azureAdClientSecret
-    contentType: 'text/plain'
   }
 }
 
@@ -103,6 +89,3 @@ output keyVaultName string = keyVault.name
 
 @description('The URI of the Key Vault')
 output keyVaultUri string = keyVault.properties.vaultUri
-
-@description('The URI of the Azure AD client secret in Key Vault')
-output azureAdClientSecretUri string = azureAdClientSecretSecret.properties.secretUri

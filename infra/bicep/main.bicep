@@ -72,8 +72,19 @@ module keyVault 'modules/key-vault.bicep' = {
     name: keyVaultName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
-    azureAdClientSecret: azureAdClientSecret
     userAssignedManagedIdentityPrincipalId: managedIdentity.outputs.principalId
+    tags: tags
+  }
+}
+
+// Deploy Key Vault secrets
+module keyVaultSecrets 'modules/key-vault-secrets.bicep' = {
+  name: 'deploy-keyvault-secrets-${deployment().name}'
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    secretName: 'azure-ad-client-secret'
+    secretValue: azureAdClientSecret
+    contentType: 'text/plain'
     tags: tags
   }
 }
@@ -112,7 +123,7 @@ module appService 'modules/app-service.bicep' = {
     userAssignedManagedIdentityId: managedIdentity.outputs.identityId
     azureAdInstance: azureAdInstance
     azureAdClientId: azureAdClientId
-    azureAdClientSecretUri: keyVault.outputs.azureAdClientSecretUri
+    azureAdClientSecretUri: keyVaultSecrets.outputs.secretUri
     azureAdCallbackPath: azureAdCallbackPath
     tags: tags
   }

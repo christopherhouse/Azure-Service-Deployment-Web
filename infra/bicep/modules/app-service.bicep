@@ -65,10 +65,6 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
           name: 'ASPNETCORE_ENVIRONMENT'
           value: environmentName
         }
-        {
-          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
-          value: 'true'
-        }
       ]
     }
     httpsOnly: true

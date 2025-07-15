@@ -11,6 +11,7 @@ env:
   AZURE_REGION: 'eastus2'
   BICEP_FILE_PATH: 'infra/bicep/main.bicep'
   BICEP_PARAMETERS_FILE: 'infra/bicep/main.bicepparam'
+  ARM_PARAMETERS_FILE: 'artifact/infra/bicep/parameters/main.parameters.json'
 permissions:
   id-token: write
   contents: read
@@ -39,6 +40,14 @@ jobs:
       
     - name: Create deployment package
       run: cd publish && zip -r ../publish.zip .
+    
+    - name: Validate Bicep and Prepare Parameters
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az bicep build --file ${{ env.BICEP_FILE_PATH }} --outdir infra/bicep
+          az bicep build-params --file ${{ env.BICEP_PARAMETERS_FILE }} --outfile infra/bicep/parameters/main.parameters.json
       
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
@@ -78,7 +87,7 @@ jobs:
         resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
         template: artifact/infra/bicep/main.bicep
 #        parametersFile: artifact/infra/bicep/main.bicepparam
-        parameters: artifact/infra/bicep/main.parameters.json # azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        parameters: ${{ env.ARM_PARAMETERS_FILE }} # azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
         failOnStdErr: false
         deploymentName: main-${{ github.run_id }}
         scope: resourcegroup

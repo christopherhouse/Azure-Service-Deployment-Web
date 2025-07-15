@@ -10,7 +10,7 @@ env:
   AZURE_RESOURCE_GROUP: 'RG-WEB-DEPLOY'
   AZURE_REGION: 'eastus2'
   BICEP_FILE_PATH: 'infra/bicep/main.bicep'
-  BICEP_PARAMETERS_FILE: 'infra/bicep/main.bicepparam'
+  BICEP_PARAMETERS_FILE: 'infra/bicep/parameters/main.bicepparam'
   ARM_PARAMETERS_FILE: 'artifact/infra/bicep/parameters/main.parameters.json'
 permissions:
   id-token: write
@@ -86,7 +86,6 @@ jobs:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
         template: artifact/infra/bicep/main.bicep
-#        parametersFile: artifact/infra/bicep/main.bicepparam
         parameters: ${{ env.ARM_PARAMETERS_FILE }} # azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
         failOnStdErr: false
         deploymentName: main-${{ github.run_id }}

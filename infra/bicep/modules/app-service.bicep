@@ -16,6 +16,24 @@ param tags object = {}
 @description('The resource ID of the Log Analytics workspace for diagnostic settings')
 param logAnalyticsWorkspaceId string
 
+@description('The resource ID of the user assigned managed identity')
+param userAssignedManagedIdentityId string
+
+@description('Azure AD instance URL')
+param azureAdInstance string
+
+@description('Azure AD client ID')
+param azureAdClientId string
+
+@description('Azure AD client secret Key Vault reference URI')
+param azureAdClientSecretUri string
+
+@description('Azure AD callback path')
+param azureAdCallbackPath string
+
+@description('The startup command for the web app (siteConfig.appCommandLine)')
+param appStartupCommand string = ''
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
   location: location
@@ -48,7 +66,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   tags: tags
   kind: 'app,linux'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedManagedIdentityId}': {}
+    }
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -62,11 +83,28 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
       minTlsVersion: '1.2'
       http20Enabled: true
       publicNetworkAccess: 'Enabled'
-      keyVaultReferenceIdentity: 'SystemAssigned'
+      keyVaultReferenceIdentity: userAssignedManagedIdentityId
+      appCommandLine: appStartupCommand
       appSettings: [
         {
           name: 'ASPNETCORE_ENVIRONMENT'
           value: environmentName
+        }
+        {
+          name: 'AzureAd__Instance'
+          value: azureAdInstance
+        }
+        {
+          name: 'AzureAd__ClientId'
+          value: azureAdClientId
+        }
+        {
+          name: 'AzureAd__ClientSecret'
+          value: '@Microsoft.KeyVault(SecretUri=${azureAdClientSecretUri})'
+        }
+        {
+          name: 'AzureAd__CallbackPath'
+          value: azureAdCallbackPath
         }
       ]
       virtualApplications: [

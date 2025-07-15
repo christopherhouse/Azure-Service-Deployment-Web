@@ -31,6 +31,9 @@ param azureAdClientSecretUri string
 @description('Azure AD callback path')
 param azureAdCallbackPath string
 
+@description('The startup command for the web app (siteConfig.appCommandLine)')
+param appStartupCommand string = ''
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
   location: location
@@ -81,6 +84,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
       http20Enabled: true
       publicNetworkAccess: 'Enabled'
       keyVaultReferenceIdentity: userAssignedManagedIdentityId
+      appCommandLine: appStartupCommand
       appSettings: [
         {
           name: 'ASPNETCORE_ENVIRONMENT'

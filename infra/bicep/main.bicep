@@ -35,6 +35,9 @@ param tags object = {
   deployedBy: 'bicep'
 }
 
+@description('The startup command for the web app (siteConfig.appCommandLine)')
+param appStartupCommand string = ''
+
 // Generate resource names following Azure Well-Architected Framework naming convention
 var logAnalyticsWorkspaceName = 'log-${workloadName}-${environmentName}'
 var keyVaultName = 'kv-${workloadName}-${environmentName}'
@@ -126,6 +129,7 @@ module appService 'modules/app-service.bicep' = {
     azureAdClientSecretUri: keyVaultSecrets.outputs.secretUri
     azureAdCallbackPath: azureAdCallbackPath
     tags: tags
+    appStartupCommand: appStartupCommand
   }
 }
 

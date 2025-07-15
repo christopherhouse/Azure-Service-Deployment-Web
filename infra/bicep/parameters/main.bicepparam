@@ -13,6 +13,7 @@ param azureAdCallbackPath = '/signin-oidc'
 
 // Optional parameters with example values
 param logAnalyticsRetentionInDays = 90
+param appStartupCommand = 'dotnet AzureDeploymentWeb.dll'
 
 // Tags can be customized as needed
 param tags = {

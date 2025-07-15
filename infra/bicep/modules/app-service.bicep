@@ -78,6 +78,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     reserved: true // Required for Linux
+    keyVaultReferenceIdentity: existingUami.id
     siteConfig: {
       linuxFxVersion: 'DOTNET|8.0'
       netFrameworkVersion: 'v4.0'

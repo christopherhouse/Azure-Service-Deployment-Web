@@ -34,6 +34,12 @@ param azureAdCallbackPath string
 @description('The startup command for the web app (siteConfig.appCommandLine)')
 param appStartupCommand string = ''
 
+@description('The URI of the Redis connection string Key Vault secret')
+param cacheRedisConnectionStringUri string
+
+@description('The URI of the SignalR connection string Key Vault secret')
+param azureSignalRConnectionStringUri string
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
   location: location
@@ -110,6 +116,14 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'AzureAd__CallbackPath'
           value: azureAdCallbackPath
+        }
+        {
+          name: 'Cache__Redis__ConnectionString'
+          value: '@Microsoft.KeyVault(SecretUri=${cacheRedisConnectionStringUri})'
+        }
+        {
+          name: 'AzureSignalR__ConnectionString'
+          value: '@Microsoft.KeyVault(SecretUri=${azureSignalRConnectionStringUri})'
         }
       ]
       virtualApplications: [

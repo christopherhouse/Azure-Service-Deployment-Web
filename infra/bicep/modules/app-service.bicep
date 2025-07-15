@@ -86,8 +86,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     reserved: true // Required for Linux
     keyVaultReferenceIdentity: existingUami.id
     siteConfig: {
-      linuxFxVersion: 'DOTNET|8.0'
-      netFrameworkVersion: 'v4.0'
+      linuxFxVersion: 'DOTNETCORE|8.0'
       numberOfWorkers: 1
       alwaysOn: true
       ftpsState: 'FtpsOnly'

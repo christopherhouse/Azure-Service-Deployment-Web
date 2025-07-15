@@ -11,7 +11,6 @@ env:
   AZURE_REGION: 'eastus2'
   BICEP_FILE_PATH: 'infra/bicep/main.bicep'
   BICEP_PARAMETERS_FILE: 'infra/bicep/main.bicepparam'
-
 permissions:
   id-token: write
   contents: read
@@ -78,8 +77,8 @@ jobs:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
         template: artifact/infra/bicep/main.bicep
-        parametersFile: artifact/infra/bicep/main.bicepparam
-        parameters: azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
+#        parametersFile: artifact/infra/bicep/main.bicepparam
+        parameters: artifact/infra/bicep/main.parameters.json azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
         failOnStdErr: false
         deploymentName: main-${{ github.run_id }}
         scope: resourcegroup

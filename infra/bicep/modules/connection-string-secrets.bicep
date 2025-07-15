@@ -45,5 +45,5 @@ resource signalRConnSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
   }
 }
 
-output redisConnectionStringSecretUri string = redisConnSecret.id
-output signalRConnectionStringSecretUri string = signalRConnSecret.id
+output redisConnectionStringSecretUri string = redisConnSecret.properties.secretUriWithVersion
+output signalRConnectionStringSecretUri string = signalRConnSecret.properties.secretUriWithVersion

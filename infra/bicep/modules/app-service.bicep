@@ -16,8 +16,8 @@ param tags object = {}
 @description('The resource ID of the Log Analytics workspace for diagnostic settings')
 param logAnalyticsWorkspaceId string
 
-@description('The resource ID of the user assigned managed identity')
-param userAssignedManagedIdentityId string
+@description('The name of the user assigned managed identity')
+param userAssignedManagedIdentityName string
 
 @description('Azure AD instance URL')
 param azureAdInstance string
@@ -60,6 +60,10 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   }
 }
 
+resource existingUami 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+  name: userAssignedManagedIdentityName
+}
+
 resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: webAppName
   location: location
@@ -68,7 +72,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${userAssignedManagedIdentityId}': {}
+      '${existingUami.id}': {}
     }
   }
   properties: {
@@ -83,7 +87,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
       minTlsVersion: '1.2'
       http20Enabled: true
       publicNetworkAccess: 'Enabled'
-      keyVaultReferenceIdentity: userAssignedManagedIdentityId
+      keyVaultReferenceIdentity: existingUami.id
       appCommandLine: appStartupCommand
       appSettings: [
         {

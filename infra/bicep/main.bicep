@@ -123,7 +123,7 @@ module appService 'modules/app-service.bicep' = {
     environmentName: environmentName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
-    userAssignedManagedIdentityId: managedIdentity.outputs.identityId
+    userAssignedManagedIdentityName: managedIdentity.outputs.identityName
     azureAdInstance: azureAdInstance
     azureAdClientId: azureAdClientId
     azureAdClientSecretUri: keyVaultSecrets.outputs.secretUri

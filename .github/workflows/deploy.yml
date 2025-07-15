@@ -78,7 +78,7 @@ jobs:
         resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
         template: artifact/infra/bicep/main.bicep
 #        parametersFile: artifact/infra/bicep/main.bicepparam
-        parameters: artifact/infra/bicep/main.parameters.json azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        parameters: artifact/infra/bicep/main.parameters.json # azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
         failOnStdErr: false
         deploymentName: main-${{ github.run_id }}
         scope: resourcegroup

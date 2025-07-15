@@ -45,7 +45,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: webapp-build
-        path: ./publish.zip
+        path: |
+          ./publish.zip
+          ./infra/bicep/**
         retention-days: 1
 
   deploy:
@@ -60,7 +62,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: webapp-build
-        path: ./
+        path: ./artifact
         
     - name: Azure Login
       uses: azure/login@v2
@@ -75,8 +77,9 @@ jobs:
       with:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
-        template: ${{ env.BICEP_FILE_PATH }}
-        parameters: ${{ env.BICEP_PARAMETERS_FILE }} azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        template: artifact/infra/bicep/main.bicep
+        parametersFile: artifact/infra/bicep/main.bicepparam
+        parameters: azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
         failOnStdErr: false
         deploymentName: main-${{ github.run_id }}
         scope: resourcegroup
@@ -85,5 +88,5 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ steps.bicep-deploy.outputs.webAppName }}
-        package: ./publish.zip
+        package: artifact/publish.zip
         type: 'ZIP'

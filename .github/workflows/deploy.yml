@@ -76,7 +76,7 @@ jobs:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
         template: ${{ env.BICEP_FILE_PATH }}
-        parameters: env.BICEP_PARAMETERS_FILE azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        parameters: ${{ env.BICEP_PARAMETERS_FILE }} azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
         failOnStdErr: false
         deploymentName: main-${{ github.run_id }}
         scope: resourcegroup

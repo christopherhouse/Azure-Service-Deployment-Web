@@ -7,9 +7,6 @@ param redisResourceName string
 @description('The name of the SignalR resource')
 param signalRResourceName string
 
-@description('Tags to apply to the secrets')
-param tags object = {}
-
 // Reference existing Redis resource
 resource redisCache 'Microsoft.Cache/redis@2024-03-01' existing = {
   name: redisResourceName

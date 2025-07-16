@@ -26,22 +26,19 @@ This repository provides a complete solution for deploying Azure resources throu
 ## 🏗️ Architecture & Technical Overview
 
 ### Application Architecture
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   User Browser  │───▶│  ASP.NET Core    │───▶│  Azure Resource │
-│                 │    │  MVC Web App     │    │  Manager API    │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         │              ┌────────▼────────┐             │
-         └──────────────▶│  Azure AD       │◀────────────┘
-                        │  Authentication │
-                        └─────────────────┘
-                                 │
-                        ┌────────▼────────┐
-                        │   Azure SignalR │
-                        │   (Real-time)   │
-                        └─────────────────┘
-```
+
+![Architecture Diagram](docs/images/architecture-diagram.png)
+
+The application follows a modern cloud-native architecture with the following components:
+
+- **👤 User Browser**: Modern web interface for ARM template deployment
+- **🚀 .NET 8 MVC Web App**: Core application hosted on Azure App Service
+- **🔐 Microsoft Entra ID**: OAuth 2.0 authentication and authorization
+- **⚡ Redis Cache**: Caches Azure Management API responses for improved performance
+- **📡 Azure SignalR**: Provides real-time deployment status updates to the UI
+- **🔑 Azure Key Vault**: Securely stores application secrets and connection strings
+- **📊 Application Insights**: Telemetry, monitoring, and application performance management
+- **☁️ Azure Resource Manager**: Target for ARM template deployments
 
 ### Technology Stack
 - **Frontend**: ASP.NET Core MVC with Bootstrap 5, JavaScript, SignalR

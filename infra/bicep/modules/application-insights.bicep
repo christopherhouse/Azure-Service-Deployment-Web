@@ -30,8 +30,5 @@ output applicationInsightsId string = applicationInsights.id
 @description('The name of the Application Insights component')
 output applicationInsightsName string = applicationInsights.name
 
-@description('The connection string for the Application Insights component')
-output connectionString string = applicationInsights.properties.ConnectionString
-
-@description('The instrumentation key for the Application Insights component')
-output instrumentationKey string = applicationInsights.properties.InstrumentationKey
+// Connection string and instrumentation key should not be exposed in outputs for security reasons
+// These can be retrieved using existing resource references where needed

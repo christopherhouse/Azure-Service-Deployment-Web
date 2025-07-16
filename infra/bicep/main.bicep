@@ -152,7 +152,7 @@ module appService 'modules/app-service.bicep' = {
     azureAdCallbackPath: azureAdCallbackPath
     cacheRedisConnectionStringUri: connectionStringSecrets.outputs.redisConnectionStringSecretUri
     azureSignalRConnectionStringUri: connectionStringSecrets.outputs.signalRConnectionStringSecretUri
-    applicationInsightsConnectionString: applicationInsights.outputs.connectionString
+    applicationInsightsName: applicationInsights.outputs.applicationInsightsName
     tags: tags
     appStartupCommand: appStartupCommand
   }
@@ -219,8 +219,5 @@ output applicationInsightsId string = applicationInsights.outputs.applicationIns
 @description('The name of the Application Insights component')
 output applicationInsightsName string = applicationInsights.outputs.applicationInsightsName
 
-@description('The connection string for the Application Insights component')
-output applicationInsightsConnectionString string = applicationInsights.outputs.connectionString
-
-@description('The instrumentation key for the Application Insights component')
-output applicationInsightsInstrumentationKey string = applicationInsights.outputs.instrumentationKey
+// Connection string and instrumentation key are not output for security reasons
+// They can be retrieved using existing resource references where needed

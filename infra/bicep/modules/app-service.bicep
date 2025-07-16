@@ -40,8 +40,8 @@ param cacheRedisConnectionStringUri string
 @description('The URI of the SignalR connection string Key Vault secret')
 param azureSignalRConnectionStringUri string
 
-@description('The Application Insights connection string')
-param applicationInsightsConnectionString string
+@description('The name of the Application Insights component')
+param applicationInsightsName string
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
@@ -71,6 +71,10 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
 
 resource existingUami 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: userAssignedManagedIdentityName
+}
+
+resource existingApplicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: applicationInsightsName
 }
 
 resource webApp 'Microsoft.Web/sites@2023-12-01' = {
@@ -129,7 +133,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: applicationInsightsConnectionString
+          value: existingApplicationInsights.properties.ConnectionString
         }
       ]
       virtualApplications: [

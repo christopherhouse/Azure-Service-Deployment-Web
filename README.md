@@ -179,13 +179,10 @@ This repository includes a complete CI/CD pipeline that deploys both infrastruct
 2. **Configure GitHub Secrets**:
    | Secret Name | Description |
    |-------------|-------------|
-   | `AZURE_CLIENT_ID` | Service principal client ID |
+   | `AZURE_CLIENT_ID` | Service principal client ID for GitHub Actions Azure authentication |
    | `AZURE_TENANT_ID` | Azure tenant ID |
    | `AZURE_SUBSCRIPTION_ID` | Target Azure subscription |
-   | `AZURE_AD_CLIENT_ID` | Web app authentication client ID |
-   | `AZURE_AD_CLIENT_SECRET` | Web app authentication secret |
-   | `AZURE_AD_INSTANCE` | `https://login.microsoftonline.com` |
-   | `AZURE_AD_CALLBACK_PATH` | `/signin-oidc` |
+   | `AZURE_AD_CLIENT_SECRET` | Web app authentication client secret |
 
 3. **Deploy**:
    - Push to `main` branch triggers automatic deployment

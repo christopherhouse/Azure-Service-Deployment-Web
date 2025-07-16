@@ -5,6 +5,7 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Resources.Models;
 using System.Text.Json;
 using AzureDeploymentWeb.Models;
+using Microsoft.Extensions.Options;
 
 namespace AzureDeploymentWeb.Services
 {
@@ -30,8 +31,9 @@ namespace AzureDeploymentWeb.Services
     public class AzureDeploymentService : IAzureDeploymentService
     {
         private readonly ArmClient _armClient;
+        private readonly AzureAdOptions _azureAdOptions;
 
-        public AzureDeploymentService()
+        public AzureDeploymentService(IOptions<AzureAdOptions> azureAdOptions)
         {
             // Detect if running locally
             var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
@@ -43,7 +45,7 @@ namespace AzureDeploymentWeb.Services
             else
             {
                 // Use user assigned managed identity client id if provided
-                var uamiClientId = Environment.GetEnvironmentVariable("AzureAd__ClientId");
+                var uamiClientId = azureAdOptions.Value.ClientId;
                 if (!string.IsNullOrEmpty(uamiClientId))
                 {
                     credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
@@ -57,6 +59,7 @@ namespace AzureDeploymentWeb.Services
                 }
             }
             _armClient = new ArmClient(credential);
+            _azureAdOptions = azureAdOptions.Value;
         }
 
         public async Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName)

@@ -4,8 +4,12 @@ using AzureDeploymentWeb.Services;
 using AzureDeploymentWeb.Hubs;
 using AzureDeploymentWeb.Models;
 using Microsoft.Extensions.Logging.ApplicationInsights;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Bind AzureAdOptions from configuration and register with DI
+builder.Services.Configure<AzureAdOptions>(builder.Configuration.GetSection(AzureAdOptions.SectionName));
 
 var clientId = builder.Configuration["AzureAd:ClientId"];
 var clientSecret = builder.Configuration["AzureAd:ClientSecret"];

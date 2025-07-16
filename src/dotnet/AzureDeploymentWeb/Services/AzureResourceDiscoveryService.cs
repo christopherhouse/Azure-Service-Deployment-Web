@@ -33,6 +33,7 @@ namespace AzureDeploymentWeb.Services
         private readonly IDistributedCache _cache;
         private readonly CacheOptions _cacheOptions;
         private readonly ILogger<AzureResourceDiscoveryService> _logger;
+        private readonly AzureAdOptions _azureAdOptions;
 
         private const string SubscriptionsCacheKey = "azure_subscriptions";
         private const string ResourceGroupsCacheKeyPrefix = "azure_resource_groups_";
@@ -40,29 +41,20 @@ namespace AzureDeploymentWeb.Services
         public AzureResourceDiscoveryService(
             IDistributedCache cache, 
             IOptions<CacheOptions> cacheOptions,
+            IOptions<AzureAdOptions> azureAdOptions,
             ILogger<AzureResourceDiscoveryService> logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            
             // Detect if running locally
             var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
             DefaultAzureCredential credential;
             if (isLocal)
             {
-                _logger.LogInformation("Running locally - using DefaultAzureCredential");
                 credential = new DefaultAzureCredential();
             }
             else
             {
                 // Use user assigned managed identity client id if provided
-                var uamiClientId = Environment.GetEnvironmentVariable("AzureAd__ClientId");
-
-                if (string.IsNullOrEmpty(uamiClientId))
-                {
-                    uamiClientId = "1bc37b1a-d4a7-4f5c-bdc5-18a3142e73fa";
-                }
-
-                _logger.LogInformation($"Running with user assigned MI client ID: {uamiClientId}");
+                var uamiClientId = azureAdOptions.Value.ClientId;
                 if (!string.IsNullOrEmpty(uamiClientId))
                 {
                     credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
@@ -78,6 +70,8 @@ namespace AzureDeploymentWeb.Services
             _armClient = new ArmClient(credential);
             _cache = cache;
             _cacheOptions = cacheOptions.Value;
+            _azureAdOptions = azureAdOptions.Value;
+            _logger = logger;
         }
 
         public async Task<List<SubscriptionInfo>> GetSubscriptionsAsync()

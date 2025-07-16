@@ -47,6 +47,7 @@ namespace AzureDeploymentWeb.Services
             DefaultAzureCredential credential;
             if (isLocal)
             {
+                _logger.LogInformation("Running locally - using DefaultAzureCredential");
                 credential = new DefaultAzureCredential();
             }
             else
@@ -68,7 +69,7 @@ namespace AzureDeploymentWeb.Services
             _armClient = new ArmClient(credential);
             _cache = cache;
             _cacheOptions = cacheOptions.Value;
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<SubscriptionInfo>> GetSubscriptionsAsync()

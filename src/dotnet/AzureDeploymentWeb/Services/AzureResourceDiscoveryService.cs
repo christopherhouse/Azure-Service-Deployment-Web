@@ -44,34 +44,11 @@ namespace AzureDeploymentWeb.Services
             IOptions<AzureAdOptions> azureAdOptions,
             ILogger<AzureResourceDiscoveryService> logger)
         {
-            // Detect if running locally
-            var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
-            DefaultAzureCredential credential;
-            if (isLocal)
-            {
-                credential = new DefaultAzureCredential();
-            }
-            else
-            {
-                // Use user assigned managed identity client id if provided
-                var uamiClientId = azureAdOptions.Value.ClientId;
-                if (!string.IsNullOrEmpty(uamiClientId))
-                {
-                    credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = uamiClientId
-                    });
-                }
-                else
-                {
-                    credential = new DefaultAzureCredential();
-                }
-            }
-            _armClient = new ArmClient(credential);
-            _cache = cache;
-            _cacheOptions = cacheOptions.Value;
-            _azureAdOptions = azureAdOptions.Value;
-            _logger = logger;
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _cacheOptions = cacheOptions?.Value ?? throw new ArgumentNullException(nameof(cacheOptions));
+            _azureAdOptions = azureAdOptions?.Value ?? throw new ArgumentNullException(nameof(azureAdOptions));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _armClient = new ArmClient(CreateCredential(_azureAdOptions));
         }
 
         public async Task<List<SubscriptionInfo>> GetSubscriptionsAsync()
@@ -235,6 +212,24 @@ namespace AzureDeploymentWeb.Services
                 // Return empty list if there's an error (e.g., no access to resource groups)
                 return new List<ResourceGroupInfo>();
             }
+        }
+
+        private static DefaultAzureCredential CreateCredential(AzureAdOptions azureAdOptions)
+        {
+            var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
+            DefaultAzureCredentialOptions? options = null;
+            if (!isLocal)
+            {
+                var uamiClientId = azureAdOptions.ClientId;
+                if (!string.IsNullOrEmpty(uamiClientId))
+                {
+                    options = new DefaultAzureCredentialOptions
+                    {
+                        ManagedIdentityClientId = uamiClientId
+                    };
+                }
+            }
+            return options != null ? new DefaultAzureCredential(options) : new DefaultAzureCredential();
         }
     }
 }

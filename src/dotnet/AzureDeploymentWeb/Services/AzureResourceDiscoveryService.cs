@@ -143,7 +143,7 @@ namespace AzureDeploymentWeb.Services
                 var cachedData = await _cache.GetStringAsync(cacheKey);
                 if (!string.IsNullOrEmpty(cachedData))
                 {
-                    _logger.LogInformation("Retrieved resource groups for subscription {SubscriptionId} from cache", subscriptionId);
+                    _logger.LogInformation("Retrieved resource groups for subscription {SubscriptionId} from cache", subscriptionId.SanitizeString() ?? "NULL");
                     var cachedResourceGroups = JsonSerializer.Deserialize<List<ResourceGroupInfo>>(cachedData);
                     if (cachedResourceGroups != null)
                     {

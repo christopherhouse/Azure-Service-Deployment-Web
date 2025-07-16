@@ -54,6 +54,7 @@ namespace AzureDeploymentWeb.Services
             {
                 // Use user assigned managed identity client id if provided
                 var uamiClientId = Environment.GetEnvironmentVariable("AzureAd__ClientId");
+                _logger.LogInformation($"Running with user assigned MI client ID: {uamiClientId}");
                 if (!string.IsNullOrEmpty(uamiClientId))
                 {
                     credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
@@ -127,6 +128,15 @@ namespace AzureDeploymentWeb.Services
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to cache subscriptions");
+                }
+
+                if (sortedSubscriptions.Count == 0)
+                {
+                    _logger.LogWarning("No subscriptions found or accessible");
+                }
+                else
+                {
+                    _logger.LogInformation("Found {Count} subscriptions", sortedSubscriptions.Count);
                 }
 
                 return sortedSubscriptions;
@@ -203,6 +213,16 @@ namespace AzureDeploymentWeb.Services
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to cache resource groups for subscription {SubscriptionId}", subscriptionId);
+                }
+
+                if (sortedResourceGroups.Count == 0)
+                {
+                    _logger.LogWarning("No resource groups found or accessible for subscription {SubscriptionId}", subscriptionId);
+                }
+                else
+                {
+                    _logger.LogInformation("Found {Count} resource groups for subscription {SubscriptionId}", 
+                        sortedResourceGroups.Count, subscriptionId);
                 }
 
                 return sortedResourceGroups;

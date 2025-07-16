@@ -80,7 +80,9 @@ resource existingApplicationInsights 'Microsoft.Insights/components@2020-02-02' 
 resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: webAppName
   location: location
-  tags: tags
+  tags: union(tags, {
+    'hidden-link:${existingApplicationInsights.id}': 'Resource'
+  })
   kind: 'app,linux'
   identity: {
     type: 'UserAssigned'
@@ -134,6 +136,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: existingApplicationInsights.properties.ConnectionString
+        }
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: existingApplicationInsights.properties.InstrumentationKey
         }
       ]
       virtualApplications: [

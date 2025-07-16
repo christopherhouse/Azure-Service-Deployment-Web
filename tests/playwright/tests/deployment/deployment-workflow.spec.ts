@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
 
+if (process.env.CI) {
+  test.skip(true, 'Skipping deployment workflow tests in CI due to authentication restrictions');
+}
+
 test.describe('Deployment Workflow', () => {
   test('should navigate to deployment page', async ({ page }) => {
     await page.goto('/');

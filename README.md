@@ -1,340 +1,378 @@
-# Azure Service Deployment Web
+# 🚀 Azure ARM Template Deployment Web
 
-A full-stack web application that enables you to deploy Azure resources through multiple interfaces:
-- **React Frontend**: Upload ARM templates and parameter files through a user-friendly interface
-- **.NET 8 MVC Backend**: API and web interface for Azure resource management
-- **GitHub Actions**: Automated CI/CD deployment pipeline for infrastructure and applications
+A modern .NET 8 MVC web application that simplifies Azure resource deployment through ARM templates with a beautiful, user-friendly interface.
 
-## 🚀 Features
+![Homepage](https://github.com/user-attachments/assets/81f15600-0c81-4066-a3be-fcef3883c825)
 
-- **File Upload Interface**: Upload ARM templates (.json) and parameter files (.json)
-- **Azure Authentication**: Secure authentication using Microsoft Entra ID (Azure AD) with OAuth 2.0 auth code flow
-- **Real-time Deployment Status**: Visual feedback during deployment with loading indicators
-- **Success/Error Handling**: Clear success messages with emojis and detailed error reporting
-- **Environment Configuration**: Easy configuration through environment variables
-- **.NET 8 MVC Backend**: Robust API and web interface built with ASP.NET Core
-- **Bicep Infrastructure**: Infrastructure as Code using Azure Bicep templates
-- **GitHub Actions CI/CD**: Automated deployment pipeline with federated credentials
+## 🌟 What This Repository Contains
 
-## 📋 Prerequisites
+This repository provides a complete solution for deploying Azure resources through ARM templates with:
 
-- Node.js 18+ and npm (for React frontend)
-- .NET 8 SDK (for backend development)
-- Azure subscription
-- Azure AD app registration for authentication
-- Resource group for deploying resources
-- Azure service principal with federated credentials (for GitHub Actions)
+- **🎨 Modern Web Interface**: Clean, intuitive UI for uploading and deploying ARM templates
+- **🔐 Azure AD Authentication**: Secure Microsoft Entra ID integration with OAuth 2.0
+- **⚡ Real-time Deployment Tracking**: Live updates using SignalR during deployments
+- **🏗️ Infrastructure as Code**: Complete Azure Bicep templates for the entire infrastructure
+- **🚀 CI/CD Pipeline**: Automated GitHub Actions workflow for seamless deployments
+- **🧪 Comprehensive Testing**: Unit tests and Playwright E2E tests included
 
-## 🛠️ Setup Instructions
+## 📸 Application Screenshots
 
-### Option 1: GitHub Actions Deployment (Recommended)
+### Homepage - Authentication Required
+![Homepage](https://github.com/user-attachments/assets/81f15600-0c81-4066-a3be-fcef3883c825)
 
-This repository includes a GitHub Actions workflow that automatically builds and deploys both the infrastructure and application.
+### Deployment Interface
+![Deployment Page](https://github.com/user-attachments/assets/7f3bb36e-6ab2-414c-ad3a-01be769e025d)
 
-#### Azure Setup for GitHub Actions
+## 🏗️ Architecture & Technical Overview
 
-1. **Create Azure Service Principal with OIDC**:
-   ```bash
-   # Create a service principal
-   az ad sp create-for-rbac --name "GitHub-Actions-OIDC" --role contributor --scopes /subscriptions/{subscription-id} --json-auth
-   
-   # Create federated credentials for GitHub Actions
-   az ad app federated-credential create --id {app-id} --parameters '{
-     "name": "GitHub-Actions",
-     "issuer": "https://token.actions.githubusercontent.com",
-     "subject": "repo:{your-github-username}/{your-repo-name}:ref:refs/heads/main",
-     "description": "GitHub Actions OIDC",
-     "audiences": ["api://AzureADTokenExchange"]
-   }'
-   ```
-
-2. **Configure GitHub Repository Secrets**:
-   - `AZURE_CLIENT_ID`: Application (client) ID of the service principal
-   - `AZURE_TENANT_ID`: Directory (tenant) ID
-   - `AZURE_SUBSCRIPTION_ID`: Your Azure subscription ID
-   - `AZURE_AD_INSTANCE`: Azure AD instance URL (e.g., `https://login.microsoftonline.com`)
-   - `AZURE_AD_CLIENT_ID`: Application (client) ID for web app authentication
-   - `AZURE_AD_CLIENT_SECRET`: Client secret for web app authentication
-   - `AZURE_AD_CALLBACK_PATH`: Authentication callback path (e.g., `/signin-oidc`)
-
-3. **Trigger Deployment**:
-   - Push to the `main` branch to trigger automatic deployment
-   - Or manually trigger the workflow from GitHub Actions tab
-
-The workflow will:
-- Build the .NET 8 MVC application
-- Deploy Bicep infrastructure to Azure
-- Deploy the web application to the created App Service
-
-### Option 2: Local Development Setup
-
-#### For React Frontend Development
-
-### 1. Clone and Install
-
-```bash
-git clone <repository-url>
-cd Azure-Service-Deployment-Web/src/react
-npm install
+### Application Architecture
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   User Browser  │───▶│  ASP.NET Core    │───▶│  Azure Resource │
+│                 │    │  MVC Web App     │    │  Manager API    │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                       │                       │
+         │              ┌────────▼────────┐             │
+         └──────────────▶│  Azure AD       │◀────────────┘
+                        │  Authentication │
+                        └─────────────────┘
+                                 │
+                        ┌────────▼────────┐
+                        │   Azure SignalR │
+                        │   (Real-time)   │
+                        └─────────────────┘
 ```
 
-#### For .NET Backend Development
-
-```bash
-cd Azure-Service-Deployment-Web/src/dotnet/AzureDeploymentWeb
-dotnet restore
-dotnet build
-dotnet run
-```
-
-### 2. Azure AD App Registration
-
-1. Go to [Azure Portal](https://portal.azure.com) → Azure Active Directory → App registrations
-2. Click "New registration"
-3. Set application name (e.g., "ARM Template Deployment Tool")
-4. Set redirect URI: `http://localhost:3000` (for development)
-5. Note the **Application (client) ID** and **Directory (tenant) ID**
-
-### 3. Environment Configuration
-
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Fill in your Azure configuration in `.env`:
-   ```env
-   REACT_APP_AZURE_CLIENT_ID=your-client-id-here
-   REACT_APP_AZURE_TENANT_ID=your-tenant-id-here
-   REACT_APP_AZURE_SUBSCRIPTION_ID=your-subscription-id-here
-   REACT_APP_AZURE_RESOURCE_GROUP=your-resource-group-here
-   REACT_APP_AZURE_REDIRECT_URI=http://localhost:3000
-   ```
-
-### 4. Run the Application
-
-```bash
-npm start
-```
-
-The app will be available at `http://localhost:3000`
-
-## 🎯 How to Use
-
-1. **Sign In**: Click "Sign in with Microsoft" to authenticate with your Azure account
-2. **Upload Files**: 
-   - Select your ARM template file (.json)
-   - Select your parameters file (.json)
-3. **Deploy**: Click "Deploy to Azure" to start the deployment
-4. **Monitor**: Watch the real-time status indicator during deployment
-5. **Results**: View success message with emojis or detailed error information
+### Technology Stack
+- **Frontend**: ASP.NET Core MVC with Bootstrap 5, JavaScript, SignalR
+- **Backend**: .NET 8, Azure SDK for .NET, Microsoft Identity Web
+- **Authentication**: Microsoft Entra ID (Azure AD) with OAuth 2.0
+- **Real-time Communication**: Azure SignalR Service
+- **Infrastructure**: Azure Bicep templates
+- **CI/CD**: GitHub Actions with OIDC authentication
+- **Testing**: XUnit (40 unit tests), Playwright E2E tests
 
 ## 📁 Project Structure
 
 ```
-src/
-├── components/           # React components
-│   ├── FileUpload.tsx   # File upload interface
-│   ├── DeploymentStatus.tsx  # Status display component
-│   └── LoginButton.tsx  # Authentication component
-├── services/            # Business logic
-│   └── azureDeploymentService.ts  # Azure ARM deployment logic
-├── hooks/               # Custom React hooks
-│   └── useAzureCredential.ts  # Azure authentication hook
-├── authConfig.ts        # MSAL configuration
-├── App.tsx             # Main application component
-└── App.css             # Styling
+📦 Azure-Service-Deployment-Web
+├── 🎯 src/dotnet/AzureDeploymentWeb/     # Main .NET 8 MVC Application
+│   ├── Controllers/                      # MVC Controllers
+│   ├── Views/                           # Razor Views with Bootstrap UI
+│   ├── Services/                        # Azure integration services
+│   ├── Models/                          # Data models and view models
+│   ├── Hubs/                           # SignalR hubs for real-time updates
+│   └── wwwroot/                        # Static files (CSS, JS, images)
+├── 🧪 src/dotnet/AzureDeploymentWeb.Tests/ # Unit Tests (XUnit)
+├── 🏗️ infra/bicep/                      # Infrastructure as Code
+│   ├── main.bicep                       # Main Bicep template
+│   ├── modules/                         # Reusable Bicep modules
+│   └── parameters/                      # Environment-specific parameters
+├── 🎭 tests/playwright/                  # E2E Tests
+│   ├── tests/                          # Playwright test files
+│   ├── fixtures/                       # Test data and helpers
+│   └── playwright.config.ts            # Playwright configuration
+├── 📚 examples/                          # Sample ARM templates
+├── 🚀 .github/workflows/                 # CI/CD Pipeline
+└── 📖 docs/                             # Documentation and images
 ```
 
-## 🔧 Extension Guide
+## 🛠️ Application Components
 
-### Adding New File Types
+### Core Services
+- **`IAzureDeploymentService`**: Handles ARM template deployments
+- **`IAzureResourceDiscoveryService`**: Discovers Azure subscriptions and resource groups
+- **`DeploymentMonitoringService`**: Background service for tracking deployment status
+- **`DeploymentHub`**: SignalR hub for real-time deployment updates
 
-To support additional file types, modify the `accept` attribute in `FileUpload.tsx`:
+### Key Features
+- **📁 File Upload**: Drag-and-drop ARM templates and parameter files
+- **🔍 Resource Discovery**: Automatic subscription and resource group discovery
+- **📊 Progress Tracking**: Real-time deployment status with detailed logging
+- **🛡️ Security**: Secure file validation and Azure RBAC integration
+- **🎨 Modern UI**: Responsive design with Bootstrap 5 and custom styling
 
-```tsx
-// In src/components/FileUpload.tsx
-<input
-  type="file"
-  accept=".json,.yaml,.yml"  // Add new extensions
-  onChange={handleTemplateFileChange}
-/>
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- .NET 8 SDK
+- Azure subscription
+- Azure AD app registration
+- Git
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/christopherhouse/Azure-Service-Deployment-Web.git
+cd Azure-Service-Deployment-Web
 ```
 
-### Custom Deployment Logic
+### 2. Configure Azure AD Authentication
 
-Extend the `AzureDeploymentService` class in `src/services/azureDeploymentService.ts`:
+1. **Create Azure AD App Registration**:
+   - Go to [Azure Portal](https://portal.azure.com) → Azure Active Directory → App registrations
+   - Click "New registration"
+   - Name: "Azure ARM Deployment Tool"
+   - Redirect URI: `https://localhost:5001/signin-oidc` (for local development)
 
-```tsx
-export class AzureDeploymentService {
-  // Add custom deployment methods
-  async deployWithValidation(params: DeploymentParams) {
-    // Custom validation logic
-    return this.deployTemplate(params);
-  }
-}
+2. **Configure Application Settings**:
+   ```bash
+   cd src/dotnet/AzureDeploymentWeb
+   cp appsettings.example.json appsettings.Development.json
+   ```
+
+3. **Update `appsettings.Development.json`**:
+   ```json
+   {
+     "AzureAd": {
+       "Instance": "https://login.microsoftonline.com/",
+       "ClientId": "your-client-id-here",
+       "ClientSecret": "your-client-secret-here",
+       "TenantId": "your-tenant-id-here",
+       "CallbackPath": "/signin-oidc"
+     }
+   }
+   ```
+
+### 3. Run the Application
+```bash
+# Restore dependencies
+dotnet restore
+
+# Run the application
+dotnet run
 ```
 
-### Adding New UI Components
+The application will be available at `https://localhost:5001`
 
-1. Create component in `src/components/`
-2. Add corresponding CSS file
-3. Import and use in `App.tsx`
+### 4. Test with Sample ARM Templates
+Use the sample templates in the `examples/` folder:
+- `storage-account.json`: Creates an Azure Storage Account
+- `storage-account-parameters.json`: Parameters for the storage account
 
-Example:
-```tsx
-// src/components/NewComponent.tsx
-import React from 'react';
-import './NewComponent.css';
+## 🔄 CI/CD Deployment
 
-export const NewComponent: React.FC = () => {
-  return <div>New Component</div>;
-};
-```
+### Automated Deployment with GitHub Actions
 
-### Environment Variables
+This repository includes a complete CI/CD pipeline that deploys both infrastructure and application to Azure.
 
-Add new environment variables in `.env.example` and `.env`:
+#### Setup GitHub Actions Deployment
 
-```env
-REACT_APP_CUSTOM_SETTING=value
-```
+1. **Create Azure Service Principal with OIDC**:
+   ```bash
+   # Create service principal
+   az ad sp create-for-rbac --name "GitHub-Actions-Azure-ARM-Deploy" \
+     --role contributor \
+     --scopes /subscriptions/{your-subscription-id}
 
-Access in code:
-```tsx
-const customSetting = process.env.REACT_APP_CUSTOM_SETTING;
-```
+   # Create federated credential
+   az ad app federated-credential create \
+     --id {service-principal-app-id} \
+     --parameters '{
+       "name": "GitHub-Actions-OIDC",
+       "issuer": "https://token.actions.githubusercontent.com",
+       "subject": "repo:{your-github-username}/Azure-Service-Deployment-Web:ref:refs/heads/main",
+       "description": "GitHub Actions OIDC for Azure ARM Deployment",
+       "audiences": ["api://AzureADTokenExchange"]
+     }'
+   ```
 
-## 🔄 GitHub Actions Workflow
+2. **Configure GitHub Secrets**:
+   | Secret Name | Description |
+   |-------------|-------------|
+   | `AZURE_CLIENT_ID` | Service principal client ID |
+   | `AZURE_TENANT_ID` | Azure tenant ID |
+   | `AZURE_SUBSCRIPTION_ID` | Target Azure subscription |
+   | `AZURE_AD_CLIENT_ID` | Web app authentication client ID |
+   | `AZURE_AD_CLIENT_SECRET` | Web app authentication secret |
+   | `AZURE_AD_INSTANCE` | `https://login.microsoftonline.com` |
+   | `AZURE_AD_CALLBACK_PATH` | `/signin-oidc` |
 
-This repository includes a comprehensive CI/CD pipeline (`.github/workflows/deploy.yml`) that:
+3. **Deploy**:
+   - Push to `main` branch triggers automatic deployment
+   - Or manually trigger from GitHub Actions tab
 
-### Build Stage
-- Checks out the code
-- Sets up .NET 8 SDK
-- Restores dependencies
-- Builds the application in Release configuration
-- Publishes the application
-- Uploads build artifacts
-
-### Deploy Stage (main branch only)
-- Downloads build artifacts
-- Authenticates with Azure using OIDC/federated credentials
-- Creates Azure resource group if it doesn't exist
-- Deploys Bicep infrastructure templates
-- Deploys the web application to the created App Service
-
-### Required GitHub Secrets
-- `AZURE_CLIENT_ID`: Service principal client ID
-- `AZURE_TENANT_ID`: Azure tenant ID  
-- `AZURE_SUBSCRIPTION_ID`: Azure subscription ID
-- `AZURE_AD_INSTANCE`: Azure AD instance URL (e.g., `https://login.microsoftonline.com`)
-- `AZURE_AD_CLIENT_ID`: Application (client) ID for web app authentication
-- `AZURE_AD_CLIENT_SECRET`: Client secret for web app authentication
-- `AZURE_AD_CALLBACK_PATH`: Authentication callback path (e.g., `/signin-oidc`)
-
-### Workflow Configuration
-The workflow can be customized via environment variables in the workflow file:
-- `AZURE_RESOURCE_GROUP`: Target resource group name
-- `AZURE_REGION`: Azure region for deployment
-- `DOTNET_VERSION`: .NET SDK version to use
-
-### Manual Trigger
-The workflow can be manually triggered from the GitHub Actions tab using the "workflow_dispatch" event.
+The workflow will:
+- ✅ Build and test the .NET application
+- 🏗️ Deploy Azure infrastructure using Bicep
+- 🚀 Deploy the web application to Azure App Service
+- 🧪 Run Playwright E2E tests against the deployed app
 
 ## 🧪 Testing
 
-Run tests:
+### Unit Tests (.NET)
 ```bash
+# Run all unit tests
+dotnet test
+
+# Run with coverage
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+### E2E Tests (Playwright)
+```bash
+cd tests/playwright
+
+# Install dependencies
+npm install
+
+# Install browsers
+npx playwright install
+
+# Run tests
 npm test
+
+# Run tests with UI
+npm run test:ui
 ```
 
-Build for production:
+## 🏗️ Infrastructure as Code
+
+### Bicep Templates
+
+The `infra/bicep/` directory contains modular Bicep templates:
+
+```
+infra/bicep/
+├── main.bicep                    # Main template
+├── modules/
+│   ├── app-service.bicep        # App Service and plan
+│   ├── app-insights.bicep       # Application Insights
+│   ├── log-analytics.bicep      # Log Analytics workspace
+│   └── signalr.bicep           # Azure SignalR service
+└── parameters/
+    ├── main.dev.bicepparam      # Development parameters
+    └── main.prod.bicepparam     # Production parameters
+```
+
+### Deploy Infrastructure Manually
 ```bash
-npm run build
+cd infra/bicep
+
+# Deploy to development
+az deployment group create \
+  --resource-group rg-arm-deploy-dev \
+  --template-file main.bicep \
+  --parameters main.dev.bicepparam
+
+# Deploy to production
+az deployment group create \
+  --resource-group rg-arm-deploy-prod \
+  --template-file main.bicep \
+  --parameters main.prod.bicepparam
 ```
 
-## 🚀 Deployment
+## 🔧 Development Guide
 
-### Development
-```bash
-npm start
+### Adding New ARM Template Examples
+
+1. Add your ARM template to `examples/`
+2. Create corresponding parameter file
+3. Update example documentation
+
+### Extending the Application
+
+1. **New Controllers**: Add to `Controllers/` directory
+2. **New Services**: Implement in `Services/` with DI registration
+3. **New Views**: Add Razor views to `Views/` directory
+4. **New Models**: Add to `Models/` directory
+
+### Custom Deployment Logic
+
+Extend the `AzureDeploymentService`:
+
+```csharp
+public class AzureDeploymentService : IAzureDeploymentService
+{
+    public async Task<DeploymentResult> DeployWithValidationAsync(
+        DeploymentRequest request)
+    {
+        // Add custom validation logic
+        await ValidateTemplateAsync(request.Template);
+        
+        // Deploy with monitoring
+        return await DeployTemplateAsync(request);
+    }
+}
 ```
 
-### Production Build
-```bash
-npm run build
-```
+## 🔐 Security Best Practices
 
-The build artifacts will be in the `build/` directory, ready for deployment to any static hosting service.
+- 🔑 **Authentication**: Azure AD integration with OAuth 2.0
+- 🛡️ **Authorization**: Azure RBAC for resource access
+- 🔒 **Secrets Management**: Azure Key Vault integration available
+- 📝 **Input Validation**: File type and size validation
+- 🌐 **HTTPS**: Enforced in production
+- 🔍 **Logging**: Comprehensive audit logging
 
-### Azure Static Web Apps
-1. Build the project: `npm run build`
-2. Deploy the `build/` folder to Azure Static Web Apps
-3. Update the redirect URI in your Azure AD app registration
-
-## 🔐 Security Considerations
-
-- **Environment Variables**: Never commit `.env` files with real credentials
-- **HTTPS**: Use HTTPS in production (update redirect URI accordingly)
-- **Permissions**: Ensure Azure AD app has minimal required permissions
-- **Resource Group**: Use a dedicated resource group for testing
-
-## 🆘 Troubleshooting
+## 🚨 Troubleshooting
 
 ### Common Issues
 
 1. **Authentication Fails**
-   - Verify client ID and tenant ID in `.env`
-   - Check redirect URI matches Azure AD app registration
-   - Ensure popup blockers are disabled
+   ```bash
+   # Check Azure AD configuration
+   az ad app show --id {your-client-id}
+   
+   # Verify redirect URIs
+   az ad app update --id {your-client-id} --web-redirect-uris "https://localhost:5001/signin-oidc"
+   ```
 
 2. **Deployment Fails**
-   - Verify subscription ID and resource group exist
-   - Check Azure permissions for the authenticated user
-   - Validate ARM template syntax
+   ```bash
+   # Check Azure permissions
+   az role assignment list --assignee {your-user-id} --scope /subscriptions/{subscription-id}
+   
+   # Validate ARM template
+   az deployment group validate --resource-group {rg-name} --template-file template.json
+   ```
 
 3. **Build Errors**
-   - Clear node_modules: `rm -rf node_modules package-lock.json && npm install`
-   - Check for TypeScript errors: `npx tsc --noEmit`
+   ```bash
+   # Clean and restore
+   dotnet clean
+   dotnet restore
+   dotnet build
+   ```
 
 ### Debug Mode
 
-Enable debug logging by setting:
-```env
-REACT_APP_DEBUG=true
+Enable detailed logging in `appsettings.Development.json`:
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "Microsoft.AspNetCore": "Debug",
+      "AzureDeploymentWeb": "Debug"
+    }
+  }
+}
 ```
 
-## 📝 Contributing
+## 📈 Monitoring & Observability
+
+- **Application Insights**: Automatic telemetry and performance monitoring
+- **Structured Logging**: Comprehensive logging with correlation IDs
+- **Health Checks**: Built-in health check endpoints
+- **SignalR Metrics**: Real-time connection and message metrics
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make changes with tests
-4. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Commit: `git commit -m 'Add amazing feature'`
+5. Push: `git push origin feature/amazing-feature`
+6. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Related Links
+## 🔗 Useful Resources
 
-- [Azure ARM Templates Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/)
-- [MSAL.js Documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications)
-- [Azure Resource Manager SDK](https://docs.microsoft.com/en-us/javascript/api/@azure/arm-resources/)
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.
+- 📚 [Azure ARM Templates Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/)
+- 🔐 [Microsoft Identity Web Documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/microsoft-identity-web)
+- 🚀 [Azure Resource Manager .NET SDK](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/resourcemanager-readme)
+- 🏗️ [Azure Bicep Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/)
+- 🎭 [Playwright Testing Documentation](https://playwright.dev/dotnet/)

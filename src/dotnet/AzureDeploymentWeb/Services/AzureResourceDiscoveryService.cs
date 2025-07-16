@@ -151,7 +151,8 @@ namespace AzureDeploymentWeb.Services
             {
                 _logger.LogError(ex, "Failed to fetch subscriptions from Azure API");
                 // Return empty list if there's an error (e.g., no access to subscriptions)
-                return new List<SubscriptionInfo>();
+                throw;
+                //return new List<SubscriptionInfo>();
             }
         }
 

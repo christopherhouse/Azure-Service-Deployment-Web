@@ -15,14 +15,6 @@ This repository provides a complete solution for deploying Azure resources throu
 - **🚀 CI/CD Pipeline**: Automated GitHub Actions workflow for seamless deployments
 - **🧪 Comprehensive Testing**: Unit tests and Playwright E2E tests included
 
-## 📸 Application Screenshots
-
-### Homepage - Authentication Required
-![Homepage](https://github.com/user-attachments/assets/e7ff3081-68ed-4e06-93e3-047380c17e41)
-
-### Deployment Interface
-![Deployment Page](https://github.com/user-attachments/assets/6b6ce7be-02ec-48c9-8cb2-6d648e5160e3)
-
 ## 🏗️ Architecture & Technical Overview
 
 ### Application Architecture

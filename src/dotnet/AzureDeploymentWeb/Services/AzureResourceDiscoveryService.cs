@@ -201,7 +201,7 @@ namespace AzureDeploymentWeb.Services
                 else
                 {
                     _logger.LogInformation("Found {Count} resource groups for subscription {SubscriptionId}", 
-                        sortedResourceGroups.Count, subscriptionId);
+                        sortedResourceGroups.Count, subscriptionId.SanitizeString() ?? "NULL");
                 }
 
                 return sortedResourceGroups;

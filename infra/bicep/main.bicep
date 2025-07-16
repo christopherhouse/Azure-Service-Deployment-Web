@@ -114,6 +114,16 @@ module signalR 'modules/signalr.bicep' = {
   }
 }
 
+// Create connection string secrets for Redis and SignalR
+module connectionStringSecrets 'modules/connection-string-secrets.bicep' = {
+  name: 'connection-string-secrets-${deployment().name}'
+  params: {
+    keyVaultName: keyVault.outputs.keyVaultName
+    redisResourceName: redisCache.outputs.redisCacheName
+    signalRResourceName: signalR.outputs.signalRName
+  }
+}
+
 // Deploy App Service Plan and Web App
 module appService 'modules/app-service.bicep' = {
   name: 'deploy-appservice-${deployment().name}'
@@ -123,11 +133,13 @@ module appService 'modules/app-service.bicep' = {
     environmentName: environmentName
     location: location
     logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
-    userAssignedManagedIdentityId: managedIdentity.outputs.identityId
+    userAssignedManagedIdentityName: managedIdentity.outputs.identityName
     azureAdInstance: azureAdInstance
     azureAdClientId: azureAdClientId
     azureAdClientSecretUri: keyVaultSecrets.outputs.secretUri
     azureAdCallbackPath: azureAdCallbackPath
+    cacheRedisConnectionStringUri: connectionStringSecrets.outputs.redisConnectionStringSecretUri
+    azureSignalRConnectionStringUri: connectionStringSecrets.outputs.signalRConnectionStringSecretUri
     tags: tags
     appStartupCommand: appStartupCommand
   }

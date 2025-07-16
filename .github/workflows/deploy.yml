@@ -9,9 +9,9 @@ env:
   DOTNET_VERSION: '8.0.x'
   AZURE_RESOURCE_GROUP: 'RG-WEB-DEPLOY'
   AZURE_REGION: 'eastus2'
-  BICEP_FILE_PATH: './infra/bicep/main.bicep'
-  BICEP_PARAMETERS_FILE: './infra/bicep/main.bicepparam'
-
+  BICEP_FILE_PATH: 'infra/bicep/main.bicep'
+  BICEP_PARAMETERS_FILE: 'infra/bicep/parameters/main.bicepparam'
+  ARM_PARAMETERS_FILE: 'artifact/infra/bicep/parameters/main.parameters.json'
 permissions:
   id-token: write
   contents: read
@@ -40,12 +40,22 @@ jobs:
       
     - name: Create deployment package
       run: cd publish && zip -r ../publish.zip .
+    
+    - name: Validate Bicep and Prepare Parameters
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az bicep build --file ${{ env.BICEP_FILE_PATH }} --outdir infra/bicep
+          az bicep build-params --file ${{ env.BICEP_PARAMETERS_FILE }} --outfile infra/bicep/parameters/main.parameters.json
       
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: webapp-build
-        path: ./publish.zip
+        path: |
+          ./publish.zip
+          ./infra/bicep/**
         retention-days: 1
 
   deploy:
@@ -60,7 +70,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: webapp-build
-        path: ./
+        path: ./artifact
         
     - name: Azure Login
       uses: azure/login@v2
@@ -75,15 +85,15 @@ jobs:
       with:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
-        template: ${{ env.BICEP_FILE_PATH }}
-        parameters: env.BICEP_PARAMETERS_FILE azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
+        template: artifact/infra/bicep/main.bicep
+        parameters: ${{ env.ARM_PARAMETERS_FILE }} azureAdClientSecret=${{ secrets.AZURE_AD_CLIENT_SECRET }}
         failOnStdErr: false
-        deploymentName: deploy-appservice-${{ github.run_id }}
+        deploymentName: main-${{ github.run_id }}
         scope: resourcegroup
         
     - name: Deploy Web App
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ steps.bicep-deploy.outputs.webAppName }}
-        package: ./publish.zip
+        package: artifact/publish.zip
         type: 'ZIP'

@@ -16,8 +16,8 @@ param tags object = {}
 @description('The resource ID of the Log Analytics workspace for diagnostic settings')
 param logAnalyticsWorkspaceId string
 
-@description('The resource ID of the user assigned managed identity')
-param userAssignedManagedIdentityId string
+@description('The name of the user assigned managed identity')
+param userAssignedManagedIdentityName string
 
 @description('Azure AD instance URL')
 param azureAdInstance string
@@ -33,6 +33,12 @@ param azureAdCallbackPath string
 
 @description('The startup command for the web app (siteConfig.appCommandLine)')
 param appStartupCommand string = ''
+
+@description('The URI of the Redis connection string Key Vault secret')
+param cacheRedisConnectionStringUri string
+
+@description('The URI of the SignalR connection string Key Vault secret')
+param azureSignalRConnectionStringUri string
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
@@ -60,6 +66,10 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   }
 }
 
+resource existingUami 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+  name: userAssignedManagedIdentityName
+}
+
 resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: webAppName
   location: location
@@ -68,22 +78,22 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${userAssignedManagedIdentityId}': {}
+      '${existingUami.id}': {}
     }
   }
   properties: {
     serverFarmId: appServicePlan.id
     reserved: true // Required for Linux
+    keyVaultReferenceIdentity: existingUami.id
     siteConfig: {
-      linuxFxVersion: 'DOTNET|8.0'
-      netFrameworkVersion: 'v4.0'
+      linuxFxVersion: 'DOTNETCORE|8.0'
       numberOfWorkers: 1
       alwaysOn: true
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
       http20Enabled: true
       publicNetworkAccess: 'Enabled'
-      keyVaultReferenceIdentity: userAssignedManagedIdentityId
+      keyVaultReferenceIdentity: existingUami.id
       appCommandLine: appStartupCommand
       appSettings: [
         {
@@ -105,6 +115,14 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'AzureAd__CallbackPath'
           value: azureAdCallbackPath
+        }
+        {
+          name: 'Cache__Redis__ConnectionString'
+          value: '@Microsoft.KeyVault(SecretUri=${cacheRedisConnectionStringUri})'
+        }
+        {
+          name: 'AzureSignalR__ConnectionString'
+          value: '@Microsoft.KeyVault(SecretUri=${azureSignalRConnectionStringUri})'
         }
       ]
       virtualApplications: [

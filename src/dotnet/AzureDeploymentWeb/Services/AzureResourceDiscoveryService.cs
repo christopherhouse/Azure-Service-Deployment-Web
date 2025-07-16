@@ -42,8 +42,29 @@ namespace AzureDeploymentWeb.Services
             IOptions<CacheOptions> cacheOptions,
             ILogger<AzureResourceDiscoveryService> logger)
         {
-            // Use DefaultAzureCredential for authentication
-            var credential = new DefaultAzureCredential();
+            // Detect if running locally
+            var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
+            DefaultAzureCredential credential;
+            if (isLocal)
+            {
+                credential = new DefaultAzureCredential();
+            }
+            else
+            {
+                // Use user assigned managed identity client id if provided
+                var uamiClientId = Environment.GetEnvironmentVariable("AzureAd__ClientId");
+                if (!string.IsNullOrEmpty(uamiClientId))
+                {
+                    credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                    {
+                        ManagedIdentityClientId = uamiClientId
+                    });
+                }
+                else
+                {
+                    credential = new DefaultAzureCredential();
+                }
+            }
             _armClient = new ArmClient(credential);
             _cache = cache;
             _cacheOptions = cacheOptions.Value;

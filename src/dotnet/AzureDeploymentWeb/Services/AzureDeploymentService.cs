@@ -5,6 +5,7 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Resources.Models;
 using System.Text.Json;
 using AzureDeploymentWeb.Models;
+using Microsoft.Extensions.Options;
 
 namespace AzureDeploymentWeb.Services
 {
@@ -30,33 +31,12 @@ namespace AzureDeploymentWeb.Services
     public class AzureDeploymentService : IAzureDeploymentService
     {
         private readonly ArmClient _armClient;
+        private readonly AzureAdOptions _azureAdOptions;
 
-        public AzureDeploymentService()
+        public AzureDeploymentService(IOptions<AzureAdOptions> azureAdOptions)
         {
-            // Detect if running locally
-            var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
-            DefaultAzureCredential credential;
-            if (isLocal)
-            {
-                credential = new DefaultAzureCredential();
-            }
-            else
-            {
-                // Use user assigned managed identity client id if provided
-                var uamiClientId = Environment.GetEnvironmentVariable("AzureAd__ClientId");
-                if (!string.IsNullOrEmpty(uamiClientId))
-                {
-                    credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = uamiClientId
-                    });
-                }
-                else
-                {
-                    credential = new DefaultAzureCredential();
-                }
-            }
-            _armClient = new ArmClient(credential);
+            _azureAdOptions = azureAdOptions?.Value ?? throw new ArgumentNullException(nameof(azureAdOptions));
+            _armClient = new ArmClient(CreateCredential(_azureAdOptions));
         }
 
         public async Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName)
@@ -248,6 +228,25 @@ namespace AzureDeploymentWeb.Services
             
             // Otherwise, assume it's already in the correct format
             return JsonSerializer.Deserialize<object>(parametersContent) ?? new object();
+        }
+
+        // Place CreateCredential at the end of the class
+        private static DefaultAzureCredential CreateCredential(AzureAdOptions azureAdOptions)
+        {
+            var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
+            DefaultAzureCredentialOptions? options = null;
+            if (!isLocal)
+            {
+                var uamiClientId = azureAdOptions.ClientId;
+                if (!string.IsNullOrEmpty(uamiClientId))
+                {
+                    options = new DefaultAzureCredentialOptions
+                    {
+                        ManagedIdentityClientId = uamiClientId
+                    };
+                }
+            }
+            return options != null ? new DefaultAzureCredential(options) : new DefaultAzureCredential();
         }
     }
 }

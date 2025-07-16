@@ -7,7 +7,7 @@ param location = 'eastus2'
 
 // Azure AD authentication parameters (example values)
 param azureAdInstance = 'https://login.microsoftonline.com'
-param azureAdClientId = '1bc37b1a-d4a7-4f5c-bdc5-18a3142e73fa'
+param azureAdClientId = '5a28f6cf-be38-4d56-8317-84a5f96c5b73'
 param azureAdClientSecret = ''
 param azureAdCallbackPath = '/signin-oidc'
 

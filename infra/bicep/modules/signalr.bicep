@@ -39,6 +39,22 @@ resource signalR 'Microsoft.SignalRService/signalR@2024-03-01' = {
         value: 'True'
       }
     ]
+    resourceLogConfiguration: {
+      categories: [
+        {
+          name: 'ConnectivityLogs'
+          enabled: 'true'
+        }
+        {
+          name: 'MessagingLogs'
+          enabled: 'true'
+        }
+        {
+          name: 'HttpRequestLogs'
+          enabled: 'true'
+        }
+      ]
+    }
     cors: {
       allowedOrigins: [
         '*'

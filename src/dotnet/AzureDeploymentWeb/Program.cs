@@ -3,8 +3,13 @@ using Microsoft.Identity.Web.UI;
 using AzureDeploymentWeb.Services;
 using AzureDeploymentWeb.Hubs;
 using AzureDeploymentWeb.Models;
+using Microsoft.Extensions.Logging.ApplicationInsights;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Bind AzureAdOptions from configuration and register with DI
+builder.Services.Configure<AzureAdOptions>(builder.Configuration.GetSection(AzureAdOptions.SectionName));
 
 var clientId = builder.Configuration["AzureAd:ClientId"];
 var clientSecret = builder.Configuration["AzureAd:ClientSecret"];
@@ -36,6 +41,7 @@ var controllersBuilder = builder.Services.AddControllersWithViews();
 var applicationInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
 if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
 {
+    builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>("", LogLevel.Information);
     Console.WriteLine("Configuring Application Insights telemetry");
     builder.Services.AddApplicationInsightsTelemetry(options =>
     {

@@ -5,7 +5,7 @@ test.describe('Home Page', () => {
     await page.goto('/');
     
     // Check that the page loads without errors
-    await expect(page).toHaveTitle(/Azure Service Deployment Web/);
+    await expect(page).toHaveTitle(/Azure ARM Template Deployment Tool/);
     
     // Check for basic page elements
     await expect(page.locator('body')).toBeVisible();

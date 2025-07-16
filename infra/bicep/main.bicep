@@ -218,6 +218,3 @@ output applicationInsightsId string = applicationInsights.outputs.applicationIns
 
 @description('The name of the Application Insights component')
 output applicationInsightsName string = applicationInsights.outputs.applicationInsightsName
-
-// Connection string and instrumentation key are not output for security reasons
-// They can be retrieved using existing resource references where needed

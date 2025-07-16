@@ -154,13 +154,13 @@ namespace AzureDeploymentWeb.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to retrieve resource groups from cache for subscription {SubscriptionId}", subscriptionId);
+                _logger.LogWarning(ex, "Failed to retrieve resource groups from cache for subscription {SubscriptionId}", subscriptionId.SanitizeString() ?? "NULL");
             }
 
             // Cache miss or error - fetch from Azure
             try
             {
-                _logger.LogInformation("Fetching resource groups for subscription {SubscriptionId} from Azure API", subscriptionId);
+                _logger.LogInformation("Fetching resource groups for subscription {SubscriptionId} from Azure API", subscriptionId.SanitizeString() ?? "NULL");
                 var resourceGroups = new List<ResourceGroupInfo>();
                 
                 var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
@@ -187,7 +187,7 @@ namespace AzureDeploymentWeb.Services
                     };
                     await _cache.SetStringAsync(cacheKey, cacheData, cacheOptions);
                     _logger.LogInformation("Cached {Count} resource groups for subscription {SubscriptionId} for {Duration} minutes", 
-                        sortedResourceGroups.Count, subscriptionId, _cacheOptions.ResourceGroupsCacheDurationMinutes);
+                        sortedResourceGroups.Count, subscriptionId.SanitizeString() ?? "NULL", _cacheOptions.ResourceGroupsCacheDurationMinutes);
                 }
                 catch (Exception ex)
                 {
@@ -196,7 +196,7 @@ namespace AzureDeploymentWeb.Services
 
                 if (sortedResourceGroups.Count == 0)
                 {
-                    _logger.LogWarning("No resource groups found or accessible for subscription {SubscriptionId}", subscriptionId);
+                    _logger.LogWarning("No resource groups found or accessible for subscription {SubscriptionId}", subscriptionId.SanitizeString() ?? "NULL");
                 }
                 else
                 {
@@ -208,7 +208,7 @@ namespace AzureDeploymentWeb.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to fetch resource groups from Azure API for subscription {SubscriptionId}", subscriptionId);
+                _logger.LogError(ex, "Failed to fetch resource groups from Azure API for subscription {SubscriptionId}", subscriptionId.SanitizeString() ?? "NULL");
                 // Return empty list if there's an error (e.g., no access to resource groups)
                 return new List<ResourceGroupInfo>();
             }

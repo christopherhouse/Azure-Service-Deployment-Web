@@ -40,6 +40,9 @@ param cacheRedisConnectionStringUri string
 @description('The URI of the SignalR connection string Key Vault secret')
 param azureSignalRConnectionStringUri string
 
+@description('The Application Insights connection string')
+param applicationInsightsConnectionString string
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
   location: location
@@ -123,6 +126,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'AzureSignalR__ConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${azureSignalRConnectionStringUri})'
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: applicationInsightsConnectionString
         }
       ]
       virtualApplications: [

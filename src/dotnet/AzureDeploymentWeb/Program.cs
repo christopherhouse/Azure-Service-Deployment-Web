@@ -32,6 +32,21 @@ else
 // Add services to the container.
 var controllersBuilder = builder.Services.AddControllersWithViews();
 
+// Configure Application Insights
+var applicationInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
+{
+    Console.WriteLine("Configuring Application Insights telemetry");
+    builder.Services.AddApplicationInsightsTelemetry(options =>
+    {
+        options.ConnectionString = applicationInsightsConnectionString;
+    });
+}
+else
+{
+    Console.WriteLine("Application Insights connection string not provided - telemetry disabled");
+}
+
 // Only configure Microsoft Identity Web if ClientId is provided
 if (!string.IsNullOrEmpty(clientId))
 {

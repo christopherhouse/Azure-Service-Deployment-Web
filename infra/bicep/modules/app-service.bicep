@@ -81,7 +81,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: webAppName
   location: location
   tags: union(tags, {
-    'hidden-link:${existingApplicationInsights.id}': 'Resource'
+    'hidden-link: ${existingApplicationInsights.id}': existingApplicationInsights.id
   })
   kind: 'app,linux'
   identity: {

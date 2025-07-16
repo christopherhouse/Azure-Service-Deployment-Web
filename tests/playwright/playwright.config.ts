@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isRemote = process.env.BASE_URL && !process.env.BASE_URL.startsWith('http://localhost');
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -65,11 +67,12 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'dotnet run --project ../../src/dotnet/AzureDeploymentWeb',
-    url: 'http://localhost:5000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  // Only use webServer when running locally
+  ...(isRemote ? {} : {
+    webServer: {
+      command: 'dotnet run --project ../src/dotnet/AzureDeploymentWeb',
+      url: 'http://localhost:5000',
+      reuseExistingServer: !process.env.CI,
+    }
+  })
 });

@@ -30,7 +30,7 @@ namespace AzureDeploymentWeb.Controllers
             return !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret);
         }
 
-        private IActionResult CheckAuthorizationIfConfigured()
+        private IActionResult? CheckAuthorizationIfConfigured()
         {
             if (IsAuthenticationConfigured() && !User.Identity?.IsAuthenticated == true)
             {

@@ -46,6 +46,7 @@ var signalRName = 'signalr-${workloadName}-${environmentName}'
 var appServicePlanName = 'asp-${workloadName}-${environmentName}'
 var webAppName = 'app-${workloadName}-${environmentName}'
 var userAssignedIdentityName = 'id-${workloadName}-${environmentName}'
+var applicationInsightsName = 'appi-${workloadName}-${environmentName}'
 
 // Deploy Log Analytics workspace first as other resources depend on it
 module logAnalytics 'modules/log-analytics.bicep' = {
@@ -114,6 +115,17 @@ module signalR 'modules/signalr.bicep' = {
   }
 }
 
+// Deploy Application Insights
+module applicationInsights 'modules/application-insights.bicep' = {
+  name: 'deploy-applicationinsights-${deployment().name}'
+  params: {
+    name: applicationInsightsName
+    location: location
+    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
+    tags: tags
+  }
+}
+
 // Create connection string secrets for Redis and SignalR
 module connectionStringSecrets 'modules/connection-string-secrets.bicep' = {
   name: 'connection-string-secrets-${deployment().name}'
@@ -140,6 +152,7 @@ module appService 'modules/app-service.bicep' = {
     azureAdCallbackPath: azureAdCallbackPath
     cacheRedisConnectionStringUri: connectionStringSecrets.outputs.redisConnectionStringSecretUri
     azureSignalRConnectionStringUri: connectionStringSecrets.outputs.signalRConnectionStringSecretUri
+    applicationInsightsName: applicationInsights.outputs.applicationInsightsName
     tags: tags
     appStartupCommand: appStartupCommand
   }
@@ -199,3 +212,12 @@ output webAppName string = appService.outputs.webAppName
 
 @description('The URL of the Web App')
 output webAppUrl string = appService.outputs.webAppUrl
+
+@description('The resource ID of the Application Insights component')
+output applicationInsightsId string = applicationInsights.outputs.applicationInsightsId
+
+@description('The name of the Application Insights component')
+output applicationInsightsName string = applicationInsights.outputs.applicationInsightsName
+
+// Connection string and instrumentation key are not output for security reasons
+// They can be retrieved using existing resource references where needed

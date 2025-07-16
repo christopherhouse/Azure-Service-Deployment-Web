@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{204ECC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureDeploymentWeb", "src\dotnet\AzureDeploymentWeb\AzureDeploymentWeb.csproj", "{4ACD46FD-8D43-4704-E65C-1A3BA6BC7D0D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureDeploymentWeb.Tests", "src\dotnet\AzureDeploymentWeb.Tests\AzureDeploymentWeb.Tests.csproj", "{B8E7C3F2-9A41-4B5D-8F34-2A6C3D4E5F6A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,6 +20,10 @@ Global
 		{4ACD46FD-8D43-4704-E65C-1A3BA6BC7D0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4ACD46FD-8D43-4704-E65C-1A3BA6BC7D0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4ACD46FD-8D43-4704-E65C-1A3BA6BC7D0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8E7C3F2-9A41-4B5D-8F34-2A6C3D4E5F6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8E7C3F2-9A41-4B5D-8F34-2A6C3D4E5F6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8E7C3F2-9A41-4B5D-8F34-2A6C3D4E5F6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8E7C3F2-9A41-4B5D-8F34-2A6C3D4E5F6A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -25,6 +31,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{204ECC8A-4C8C-06A8-7EEC-D568B118FA74} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{4ACD46FD-8D43-4704-E65C-1A3BA6BC7D0D} = {204ECC8A-4C8C-06A8-7EEC-D568B118FA74}
+		{B8E7C3F2-9A41-4B5D-8F34-2A6C3D4E5F6A} = {204ECC8A-4C8C-06A8-7EEC-D568B118FA74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99527F93-7DD8-4B21-8361-FC8F1383E9F7}

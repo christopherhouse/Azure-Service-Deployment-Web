@@ -42,6 +42,8 @@ namespace AzureDeploymentWeb.Services
             IOptions<CacheOptions> cacheOptions,
             ILogger<AzureResourceDiscoveryService> logger)
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            
             // Detect if running locally
             var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
             DefaultAzureCredential credential;
@@ -76,7 +78,6 @@ namespace AzureDeploymentWeb.Services
             _armClient = new ArmClient(credential);
             _cache = cache;
             _cacheOptions = cacheOptions.Value;
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<SubscriptionInfo>> GetSubscriptionsAsync()

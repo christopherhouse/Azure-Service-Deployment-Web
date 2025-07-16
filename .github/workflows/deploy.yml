@@ -68,11 +68,13 @@ jobs:
         path: |
           ./publish.zip
           ./infra/bicep/**
-        retention-days: 1
+        retention-days: 30
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      endpointUrl: ${{ steps.bicep-deploy.outputs.webAppUrl }}
   
     steps:
     - name: Checkout code
@@ -139,7 +141,7 @@ jobs:
         cd tests/playwright
         npm run test
       env:
-        BASE_URL: ${{ steps.bicep-deploy.outputs.webAppUrl || format('https://{0}.azurewebsites.net', steps.bicep-deploy.outputs.webAppName) }}
+        BASE_URL: ${{ needs.deploy.outputs.endpointUrl }}
         
     - name: Upload Playwright Report
       uses: actions/upload-artifact@v4

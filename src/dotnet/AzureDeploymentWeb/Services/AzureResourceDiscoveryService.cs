@@ -55,7 +55,7 @@ namespace AzureDeploymentWeb.Services
                 // Use user assigned managed identity client id if provided
                 var uamiClientId = Environment.GetEnvironmentVariable("AzureAd__ClientId");
 
-                if (string.IsNullOrEmpty(uamiClientId)
+                if (string.IsNullOrEmpty(uamiClientId))
                 {
                     uamiClientId = "1bc37b1a-d4a7-4f5c-bdc5-18a3142e73fa";
                 }

@@ -40,6 +40,9 @@ param cacheRedisConnectionStringUri string
 @description('The URI of the SignalR connection string Key Vault secret')
 param azureSignalRConnectionStringUri string
 
+@description('The URI of the Service Bus connection string Key Vault secret')
+param serviceBusConnectionStringUri string
+
 @description('The name of the Application Insights component')
 param applicationInsightsName string
 
@@ -132,6 +135,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'AzureSignalR__ConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${azureSignalRConnectionStringUri})'
+        }
+        {
+          name: 'ServiceBus__ConnectionString'
+          value: '@Microsoft.KeyVault(SecretUri=${serviceBusConnectionStringUri})'
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'

@@ -74,6 +74,20 @@
             </form>
         </div>
 
+        @if (!string.IsNullOrEmpty(Model.DeploymentStatus) && Model.DeploymentStatus == "queued")
+        {
+            <div class="alert alert-warning mt-4" id="deploymentConfirmation">
+                <h4>🚀 Deployment Queued!</h4>
+                <p>Your deployment has been queued and will start shortly.</p>
+                <p><strong>Resource Group:</strong> @Model.ResourceGroup</p>
+                <p><strong>Deployment Name:</strong> @Model.DeploymentName</p>
+                @if (!string.IsNullOrEmpty(Model.DeploymentMessage))
+                {
+                    <p>@Model.DeploymentMessage</p>
+                }
+            </div>
+        }
+
         @if (!string.IsNullOrEmpty(Model.DeploymentStatus))
         {
             <div class="status-@Model.DeploymentStatus" id="deploymentStatus">

@@ -21,7 +21,8 @@ public class ServiceBusDeploymentQueueServiceTests
         _mockServiceProvider = new Mock<IServiceProvider>();
         _serviceBusOptions = new ServiceBusOptions
         {
-            ConnectionString = "", // Empty to force fallback mode
+            NamespaceEndpoint = "", // Empty to force fallback mode
+            ClientId = "",
             TopicName = "deployments",
             SubscriptionName = "all-messages"
         };
@@ -29,7 +30,7 @@ public class ServiceBusDeploymentQueueServiceTests
 
     [Fact]
     [Trait("Category", "Unit")]
-    public void Constructor_WithEmptyConnectionString_ShouldBeDisabled()
+    public void Constructor_WithEmptyNamespaceEndpoint_ShouldBeDisabled()
     {
         // Arrange
         var options = Options.Create(_serviceBusOptions);

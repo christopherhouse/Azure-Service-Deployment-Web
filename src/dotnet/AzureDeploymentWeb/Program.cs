@@ -67,10 +67,10 @@ builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 builder.Services.AddScoped<IAzureResourceDiscoveryService, AzureResourceDiscoveryService>();
 
 // Register deployment queue services
-var serviceBusConnectionString = builder.Configuration["ServiceBus:ConnectionString"];
-if (!string.IsNullOrEmpty(serviceBusConnectionString))
+var serviceBusNamespaceEndpoint = builder.Configuration["ServiceBus:NamespaceEndpoint"];
+if (!string.IsNullOrEmpty(serviceBusNamespaceEndpoint))
 {
-    Console.WriteLine("Using Service Bus deployment queue");
+    Console.WriteLine("Using Service Bus deployment queue with managed identity authentication");
     builder.Services.AddSingleton<IServiceBusDeploymentQueueService, ServiceBusDeploymentQueueService>();
     builder.Services.AddSingleton<IDeploymentQueueService>(provider => 
         provider.GetRequiredService<IServiceBusDeploymentQueueService>());
@@ -78,7 +78,7 @@ if (!string.IsNullOrEmpty(serviceBusConnectionString))
 }
 else
 {
-    Console.WriteLine("Using in-memory deployment queue (no Service Bus connection string provided)");
+    Console.WriteLine("Using in-memory deployment queue (no Service Bus namespace endpoint provided)");
     builder.Services.AddSingleton<IDeploymentQueueService, DeploymentQueueService>();
     builder.Services.AddHostedService<DeploymentWorker>();
 }

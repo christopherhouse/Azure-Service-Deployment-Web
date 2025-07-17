@@ -7,9 +7,6 @@ param redisResourceName string
 @description('The name of the SignalR resource')
 param signalRResourceName string
 
-@description('The name of the Service Bus namespace resource')
-param serviceBusNamespaceName string
-
 // Reference existing Redis resource
 resource redisCache 'Microsoft.Cache/redis@2024-03-01' existing = {
   name: redisResourceName
@@ -18,11 +15,6 @@ resource redisCache 'Microsoft.Cache/redis@2024-03-01' existing = {
 // Reference existing SignalR resource
 resource signalR 'Microsoft.SignalRService/signalR@2024-03-01' existing = {
   name: signalRResourceName
-}
-
-// Reference existing Service Bus namespace resource
-resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2024-01-01' existing = {
-  name: serviceBusNamespaceName
 }
 
 // Get Redis connection string
@@ -34,10 +26,6 @@ var redisFullConnectionString = '${redisHostName}:${redisSslPort},password=${red
 // Get SignalR connection string
 var signalRKeys = signalR.listKeys()
 var signalRConnectionString = signalRKeys.primaryConnectionString
-
-// Get Service Bus connection string
-var serviceBusKeys = serviceBusNamespace.listKeys()
-var serviceBusConnectionString = serviceBusKeys.primaryConnectionString
 
 // Create Redis connection string secret
 resource redisConnSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
@@ -57,15 +45,5 @@ resource signalRConnSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
   }
 }
 
-// Create Service Bus connection string secret
-resource serviceBusConnSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  name: '${keyVaultName}/ServiceBus--ConnectionString'
-  properties: {
-    value: serviceBusConnectionString
-    contentType: 'text/plain'
-  }
-}
-
 output redisConnectionStringSecretUri string = redisConnSecret.properties.secretUriWithVersion
 output signalRConnectionStringSecretUri string = signalRConnSecret.properties.secretUriWithVersion
-output serviceBusConnectionStringSecretUri string = serviceBusConnSecret.properties.secretUriWithVersion

@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using AzureDeploymentWeb.Models;
 using Microsoft.Extensions.Options;
@@ -28,11 +29,24 @@ namespace AzureDeploymentWeb.Services
             _serviceProvider = serviceProvider;
             _logger = logger;
 
-            if (!string.IsNullOrEmpty(_options.ConnectionString))
+            if (!string.IsNullOrEmpty(_options.NamespaceEndpoint))
             {
                 try
                 {
-                    _client = new ServiceBusClient(_options.ConnectionString);
+                    // Create DefaultAzureCredential with managed identity client ID if provided
+                    var credentialOptions = new DefaultAzureCredentialOptions();
+                    if (!string.IsNullOrEmpty(_options.ClientId))
+                    {
+                        credentialOptions.ManagedIdentityClientId = _options.ClientId;
+                        _logger.LogInformation("Using managed identity with client ID: {ClientId}", _options.ClientId);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Using DefaultAzureCredential without specific managed identity client ID");
+                    }
+
+                    var credential = new DefaultAzureCredential(credentialOptions);
+                    _client = new ServiceBusClient(_options.NamespaceEndpoint, credential);
                     _sender = _client.CreateSender(_options.TopicName);
                     
                     var processorOptions = new ServiceBusProcessorOptions
@@ -47,18 +61,18 @@ namespace AzureDeploymentWeb.Services
                     _processor.ProcessErrorAsync += ProcessErrorAsync;
                     
                     IsEnabled = true;
-                    _logger.LogInformation("Service Bus deployment queue service initialized with topic '{TopicName}' and subscription '{SubscriptionName}'", 
-                        _options.TopicName, _options.SubscriptionName);
+                    _logger.LogInformation("Service Bus deployment queue service initialized with namespace '{NamespaceEndpoint}', topic '{TopicName}' and subscription '{SubscriptionName}' using managed identity authentication", 
+                        _options.NamespaceEndpoint, _options.TopicName, _options.SubscriptionName);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to initialize Service Bus deployment queue service. Falling back to in-memory queue.");
+                    _logger.LogError(ex, "Failed to initialize Service Bus deployment queue service with managed identity authentication. Falling back to in-memory queue.");
                     IsEnabled = false;
                 }
             }
             else
             {
-                _logger.LogInformation("Service Bus connection string not provided. Using in-memory queue fallback.");
+                _logger.LogInformation("Service Bus namespace endpoint not provided. Using in-memory queue fallback.");
                 IsEnabled = false;
             }
         }

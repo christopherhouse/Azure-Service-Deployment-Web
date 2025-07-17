@@ -151,6 +151,16 @@ module serviceBusSubscription 'modules/service-bus-subscription.bicep' = {
   }
 }
 
+// Deploy Service Bus RBAC assignment for managed identity
+module serviceBusRbac 'modules/service-bus-rbac.bicep' = {
+  name: 'deploy-servicebus-rbac-${deployment().name}'
+  params: {
+    serviceBusNamespaceName: serviceBusNamespace.outputs.serviceBusNamespaceName
+    principalId: managedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // Deploy Application Insights
 module applicationInsights 'modules/application-insights.bicep' = {
   name: 'deploy-applicationinsights-${deployment().name}'
@@ -162,14 +172,13 @@ module applicationInsights 'modules/application-insights.bicep' = {
   }
 }
 
-// Create connection string secrets for Redis, SignalR and Service Bus
+// Create connection string secrets for Redis, SignalR
 module connectionStringSecrets 'modules/connection-string-secrets.bicep' = {
   name: 'connection-string-secrets-${deployment().name}'
   params: {
     keyVaultName: keyVault.outputs.keyVaultName
     redisResourceName: redisCache.outputs.redisCacheName
     signalRResourceName: signalR.outputs.signalRName
-    serviceBusNamespaceName: serviceBusNamespace.outputs.serviceBusNamespaceName
   }
 }
 
@@ -189,7 +198,8 @@ module appService 'modules/app-service.bicep' = {
     azureAdCallbackPath: azureAdCallbackPath
     cacheRedisConnectionStringUri: connectionStringSecrets.outputs.redisConnectionStringSecretUri
     azureSignalRConnectionStringUri: connectionStringSecrets.outputs.signalRConnectionStringSecretUri
-    serviceBusConnectionStringUri: connectionStringSecrets.outputs.serviceBusConnectionStringSecretUri
+    serviceBusNamespaceEndpoint: serviceBusNamespace.outputs.serviceBusEndpoint
+    serviceBusClientId: managedIdentity.outputs.clientId
     applicationInsightsName: applicationInsights.outputs.applicationInsightsName
     tags: tags
     appStartupCommand: appStartupCommand

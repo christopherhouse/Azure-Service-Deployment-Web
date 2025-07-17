@@ -19,7 +19,7 @@ This repository provides a complete solution for deploying Azure resources throu
 
 ### Application Architecture
 
-![Architecture Diagram](docs/images/architecture-diagram.png)
+![Architecture Diagram](docs/images/architecture-diagram.svg)
 
 The application follows a modern cloud-native architecture with the following components:
 

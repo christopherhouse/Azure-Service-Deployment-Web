@@ -69,6 +69,16 @@
   <text x="170" y="575" text-anchor="middle" font-family="Arial, sans-serif" 
         font-size="13" fill="white">Secrets Management</text>
 
+  <!-- Azure Service Bus (middle-left) -->
+  <rect x="290" y="650" width="180" height="90" rx="15" 
+        fill="#8B5CF6" stroke="white" stroke-width="3"/>
+  <text x="380" y="680" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="16" font-weight="bold" fill="white">🚌 Azure</text>
+  <text x="380" y="705" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="16" font-weight="bold" fill="white">Service Bus</text>
+  <text x="380" y="725" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="13" fill="white">Message Queue</text>
+
   <!-- Redis Cache (right) -->
   <rect x="940" y="500" width="180" height="90" rx="15" 
         fill="#EF4444" stroke="white" stroke-width="3"/>
@@ -135,6 +145,11 @@
   <line x1="470" y1="460" x2="260" y2="695" stroke="white" stroke-width="3" stroke-dasharray="8,8"/>
   <text x="365" y="580" text-anchor="middle" font-family="Arial, sans-serif" 
         font-size="12" fill="white" font-weight="bold">Telemetry</text>
+
+  <!-- Web App to Service Bus -->
+  <line x1="500" y1="480" x2="400" y2="650" stroke="white" stroke-width="3" stroke-dasharray="8,8"/>
+  <text x="450" y="565" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="12" fill="white" font-weight="bold">Queue Jobs</text>
   
   <!-- Web App to SignalR -->
   <line x1="730" y1="460" x2="940" y2="695" stroke="white" stroke-width="3" stroke-dasharray="8,8"/>

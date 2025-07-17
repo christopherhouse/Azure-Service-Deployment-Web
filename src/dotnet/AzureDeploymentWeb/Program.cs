@@ -4,7 +4,6 @@ using AzureDeploymentWeb.Services;
 using AzureDeploymentWeb.Hubs;
 using AzureDeploymentWeb.Models;
 using Microsoft.Extensions.Logging.ApplicationInsights;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 

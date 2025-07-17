@@ -1,6 +1,6 @@
 namespace AzureDeploymentWeb;
 
-public static class Extensions
+public static class StringExtensions
 {
     public static string? SanitizeString(this string input)
     {

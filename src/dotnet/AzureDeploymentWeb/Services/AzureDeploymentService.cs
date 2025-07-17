@@ -12,7 +12,7 @@ namespace AzureDeploymentWeb.Services
     public interface IAzureDeploymentService
     {
         Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName);
-        Task<string> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName);
+        Task<DeploymentStatus> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName);
         Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName);
         Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName, string subscriptionId, string resourceGroupName);
     }
@@ -157,7 +157,7 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<string> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName)
+        public async Task<DeploymentStatus> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName)
         {
             try
             {
@@ -170,13 +170,14 @@ namespace AzureDeploymentWeb.Services
                 var deployments = resourceGroup.Value.GetArmDeployments();
                 var deployment = await deployments.GetAsync(deploymentName);
                 
-                // Return the provisioning state as string
-                return deployment.Value.Data.Properties.ProvisioningState?.ToString() ?? "Unknown";
+                // Return the provisioning state as enum
+                var statusString = deployment.Value.Data.Properties.ProvisioningState?.ToString() ?? "Unknown";
+                return DeploymentStatusExtensions.FromString(statusString);
             }
             catch (Exception)
             {
                 // If deployment not found or any other error, return Failed
-                return "Failed";
+                return DeploymentStatus.Failed;
             }
         }
 
@@ -197,7 +198,7 @@ namespace AzureDeploymentWeb.Services
                 var notification = new DeploymentNotification
                 {
                     DeploymentName = deploymentName,
-                    Status = deploymentData.Properties.ProvisioningState?.ToString() ?? "Unknown",
+                    Status = DeploymentStatusExtensions.FromString(deploymentData.Properties.ProvisioningState?.ToString() ?? "Unknown"),
                     StartTime = deploymentData.Properties.Timestamp?.DateTime ?? DateTime.UtcNow,
                     ResourceGroup = resourceGroupName
                 };

@@ -141,7 +141,7 @@ public class DeploymentNotificationTests
     public void DeploymentNotification_WhenStatusIsSucceeded_IsSuccessfulShouldBeTrue()
     {
         // Arrange
-        var notification = new DeploymentNotification { Status = "Succeeded" };
+        var notification = new DeploymentNotification { Status = DeploymentStatus.Succeeded };
 
         // Act & Assert
         notification.IsSuccessful.Should().BeTrue();
@@ -155,7 +155,7 @@ public class DeploymentNotificationTests
     public void DeploymentNotification_WhenStatusIsFailed_HasErrorShouldBeTrue()
     {
         // Arrange
-        var notification = new DeploymentNotification { Status = "Failed" };
+        var notification = new DeploymentNotification { Status = DeploymentStatus.Failed };
 
         // Act & Assert
         notification.IsSuccessful.Should().BeFalse();
@@ -169,7 +169,7 @@ public class DeploymentNotificationTests
     public void DeploymentNotification_WhenStatusIsRunning_IsRunningShouldBeTrue()
     {
         // Arrange
-        var notification = new DeploymentNotification { Status = "Running" };
+        var notification = new DeploymentNotification { Status = DeploymentStatus.Running };
 
         // Act & Assert
         notification.IsSuccessful.Should().BeFalse();
@@ -179,11 +179,11 @@ public class DeploymentNotificationTests
     }
 
     [Theory]
-    [InlineData("Running")]
-    [InlineData("Accepted")]
-    [InlineData("Creating")]
+    [InlineData(DeploymentStatus.Running)]
+    [InlineData(DeploymentStatus.Accepted)]
+    [InlineData(DeploymentStatus.Creating)]
     [Trait("Category", "Unit")]
-    public void DeploymentNotification_WhenStatusIsInProgress_IsRunningShouldBeTrue(string status)
+    public void DeploymentNotification_WhenStatusIsInProgress_IsRunningShouldBeTrue(DeploymentStatus status)
     {
         // Arrange
         var notification = new DeploymentNotification { Status = status };

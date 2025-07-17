@@ -74,7 +74,7 @@
             </form>
         </div>
 
-        @if (!string.IsNullOrEmpty(Model.DeploymentStatus) && Model.DeploymentStatus == "queued")
+        @if (Model.DeploymentStatus.HasValue && Model.DeploymentStatus == AzureDeploymentWeb.Models.DeploymentStatus.Queued)
         {
             <div class="alert alert-warning mt-4" id="deploymentConfirmation">
                 <h4>🚀 Deployment Queued!</h4>
@@ -88,10 +88,10 @@
             </div>
         }
 
-        @if (!string.IsNullOrEmpty(Model.DeploymentStatus))
+        @if (Model.DeploymentStatus.HasValue)
         {
-            <div class="status-@Model.DeploymentStatus" id="deploymentStatus">
-                @if (Model.DeploymentStatus == "success")
+            <div class="status-@(Model.DeploymentStatus?.ToString().ToLower())" id="deploymentStatus">
+                @if (Model.DeploymentStatus == AzureDeploymentWeb.Models.DeploymentStatus.Succeeded)
                 {
                     <h4>🎉 Deployment Successful! ✨</h4>
                     <p>🎊 Your Azure resources have been deployed successfully! 🎊</p>
@@ -102,7 +102,7 @@
                         <p>@Model.DeploymentMessage</p>
                     }
                 }
-                else if (Model.DeploymentStatus == "started")
+                else if (Model.DeploymentStatus == AzureDeploymentWeb.Models.DeploymentStatus.Accepted)
                 {
                     <h4>🚀 Deployment Started! ⚡</h4>
                     <p>✨ Your deployment has been started successfully! ✨</p>
@@ -114,7 +114,7 @@
                         <p>@Model.DeploymentMessage</p>
                     }
                 }
-                else if (Model.DeploymentStatus == "error")
+                else if (Model.DeploymentStatus == AzureDeploymentWeb.Models.DeploymentStatus.Error)
                 {
                     <h4>🛑 Deployment Failed</h4>
                     <p>❌ There was an error deploying your resources.</p>
@@ -131,7 +131,7 @@
                         </div>
                     }
                 }
-                else if (Model.DeploymentStatus == "running")
+                else if (Model.DeploymentStatus == AzureDeploymentWeb.Models.DeploymentStatus.Running || Model.DeploymentStatus == AzureDeploymentWeb.Models.DeploymentStatus.Creating)
                 {
                     <div class="d-flex align-items-center">
                         <div class="spinner me-3"></div>

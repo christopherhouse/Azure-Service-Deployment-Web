@@ -10,15 +10,18 @@ namespace AzureDeploymentWeb.Controllers
     public class DeploymentController : Controller
     {
         private readonly IAzureDeploymentService _deploymentService;
+        private readonly IDeploymentQueueService _queueService;
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfiguration _configuration;
 
         public DeploymentController(
-            IAzureDeploymentService deploymentService, 
+            IAzureDeploymentService deploymentService,
+            IDeploymentQueueService queueService,
             IServiceProvider serviceProvider,
             IConfiguration configuration)
         {
             _deploymentService = deploymentService;
+            _queueService = queueService;
             _serviceProvider = serviceProvider;
             _configuration = configuration;
         }
@@ -79,38 +82,26 @@ namespace AzureDeploymentWeb.Controllers
                 // Generate deployment name
                 var deploymentName = $"webapp-deployment-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
                 var startTime = DateTime.UtcNow;
+                var userName = User.Identity?.Name ?? "unknown";
 
-                // Start async deployment with selected subscription and resource group
-                var result = await _deploymentService.StartAsyncDeploymentAsync(
-                    templateContent, 
-                    parametersContent, 
-                    deploymentName,
-                    model.SelectedSubscriptionId!,
-                    model.SelectedResourceGroupName!);
-
-                if (result.Success)
+                // Create deployment job
+                var deploymentJob = new DeploymentJob
                 {
-                    // Start tracking the deployment
-                    var userName = User.Identity?.Name ?? "unknown";
-                    var monitoringService = _serviceProvider.GetServices<IHostedService>()
-                        .OfType<DeploymentMonitoringService>()
-                        .FirstOrDefault();
-                    
-                    if (monitoringService != null)
-                    {
-                        await monitoringService.TrackDeployment(deploymentName, userName, startTime, model.SelectedSubscriptionId!, model.SelectedResourceGroupName!);
-                    }
+                    TemplateContent = templateContent,
+                    ParametersContent = parametersContent,
+                    DeploymentName = deploymentName,
+                    SubscriptionId = model.SelectedSubscriptionId!,
+                    ResourceGroupName = model.SelectedResourceGroupName!,
+                    UserName = userName,
+                    StartTime = startTime
+                };
 
-                    model.DeploymentStatus = "started";
-                    model.DeploymentMessage = "Deployment started successfully! You'll receive notifications as it progresses.";
-                    model.DeploymentName = deploymentName;
-                }
-                else
-                {
-                    model.DeploymentStatus = "error";
-                    model.DeploymentMessage = result.Error ?? "Failed to start deployment";
-                    model.DeploymentName = deploymentName;
-                }
+                // Enqueue the deployment job instead of starting it directly
+                _queueService.EnqueueJob(deploymentJob);
+
+                model.DeploymentStatus = "queued";
+                model.DeploymentMessage = "Deployment has been queued and will start processing shortly. You'll receive notifications as it progresses.";
+                model.DeploymentName = deploymentName;
             }
             catch (Exception ex)
             {

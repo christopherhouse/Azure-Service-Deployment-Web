@@ -4,7 +4,6 @@ using AzureDeploymentWeb.Services;
 using AzureDeploymentWeb.Hubs;
 using AzureDeploymentWeb.Models;
 using Microsoft.Extensions.Logging.ApplicationInsights;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +62,10 @@ if (!string.IsNullOrEmpty(clientId))
 // Register Azure services
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 builder.Services.AddScoped<IAzureResourceDiscoveryService, AzureResourceDiscoveryService>();
+
+// Register deployment queue services
+builder.Services.AddSingleton<IDeploymentQueueService, DeploymentQueueService>();
+builder.Services.AddHostedService<DeploymentWorker>();
 
 // Add SignalR
 var azureSignalRConnectionString = builder.Configuration["AzureSignalR:ConnectionString"];

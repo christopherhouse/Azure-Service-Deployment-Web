@@ -84,7 +84,7 @@ public class DeploymentControllerTests
         viewResult.ViewName.Should().Be("Index");
         
         var resultModel = viewResult.Model.Should().BeOfType<DeploymentViewModel>().Subject;
-        resultModel.DeploymentStatus.Should().Be("queued");
+        resultModel.DeploymentStatus.Should().Be(DeploymentStatus.Queued);
         resultModel.DeploymentMessage.Should().Contain("queued");
         resultModel.DeploymentName.Should().NotBeNullOrEmpty();
 
@@ -127,7 +127,7 @@ public class DeploymentControllerTests
         const string deploymentName = "test-deployment";
         const string subscriptionId = "test-subscription";
         const string resourceGroupName = "test-rg";
-        const string status = "Running";
+        const DeploymentStatus status = DeploymentStatus.Running;
 
         _mockDeploymentService.Setup(ds => ds.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName))
             .ReturnsAsync(status);
@@ -181,7 +181,7 @@ public class DeploymentControllerTests
         var jsonResult = (JsonResult)result;
         var statusModel = jsonResult.Value.Should().BeOfType<DeploymentStatusViewModel>().Subject;
         
-        statusModel.Status.Should().Be("Failed");
+        statusModel.Status.Should().Be(DeploymentStatus.Failed);
         statusModel.HasError.Should().BeTrue();
         statusModel.Message.Should().Be("Service error");
     }

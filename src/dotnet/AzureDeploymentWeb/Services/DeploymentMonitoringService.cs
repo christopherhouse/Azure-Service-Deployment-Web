@@ -154,7 +154,7 @@ namespace AzureDeploymentWeb.Services
                         var failedNotification = new DeploymentNotification
                         {
                             DeploymentName = deploymentName,
-                            Status = "Failed",
+                            Status = DeploymentStatus.Failed,
                             StartTime = tracker.StartTime,
                             EndTime = DateTime.UtcNow,
                             Message = "Deployment not found or failed to retrieve status"
@@ -300,7 +300,7 @@ namespace AzureDeploymentWeb.Services
             public DateTime StartTime { get; set; }
             public DateTime LastChecked { get; set; }
             public DateTime LastNotification { get; set; }
-            public string? LastStatus { get; set; }
+            public DeploymentStatus? LastStatus { get; set; }
             public string SubscriptionId { get; set; } = string.Empty;
             public string ResourceGroupName { get; set; } = string.Empty;
         }

@@ -99,13 +99,13 @@ namespace AzureDeploymentWeb.Controllers
                 // Enqueue the deployment job instead of starting it directly
                 _queueService.EnqueueJob(deploymentJob);
 
-                model.DeploymentStatus = "queued";
+                model.DeploymentStatus = Models.DeploymentStatus.Queued;
                 model.DeploymentMessage = "Deployment has been queued and will start processing shortly. You'll receive notifications as it progresses.";
                 model.DeploymentName = deploymentName;
             }
             catch (Exception ex)
             {
-                model.DeploymentStatus = "error";
+                model.DeploymentStatus = Models.DeploymentStatus.Error;
                 model.DeploymentMessage = ex.Message;
             }
 
@@ -142,9 +142,9 @@ namespace AzureDeploymentWeb.Controllers
                     DeploymentName = deploymentName,
                     Status = status,
                     ResourceGroup = resourceGroupName,
-                    IsSuccessful = status == "Succeeded",
-                    IsRunning = status == "Running" || status == "Accepted",
-                    HasError = status == "Failed" || status == "Canceled"
+                    IsSuccessful = status == Models.DeploymentStatus.Succeeded,
+                    IsRunning = status == Models.DeploymentStatus.Running || status == Models.DeploymentStatus.Accepted || status == Models.DeploymentStatus.Started,
+                    HasError = status == Models.DeploymentStatus.Failed || status == Models.DeploymentStatus.Canceled
                 };
 
                 return Json(statusModel);
@@ -154,7 +154,7 @@ namespace AzureDeploymentWeb.Controllers
                 return Json(new DeploymentStatusViewModel
                 {
                     DeploymentName = deploymentName,
-                    Status = "Failed",
+                    Status = Models.DeploymentStatus.Failed,
                     Message = ex.Message,
                     HasError = true
                 });

@@ -143,7 +143,7 @@ namespace AzureDeploymentWeb.Controllers
                     Status = status,
                     ResourceGroup = resourceGroupName,
                     IsSuccessful = status == Models.DeploymentStatus.Succeeded,
-                    IsRunning = status == Models.DeploymentStatus.Running || status == Models.DeploymentStatus.Accepted,
+                    IsRunning = status == Models.DeploymentStatus.Running || status == Models.DeploymentStatus.Accepted || status == Models.DeploymentStatus.Started,
                     HasError = status == Models.DeploymentStatus.Failed || status == Models.DeploymentStatus.Canceled
                 };
 

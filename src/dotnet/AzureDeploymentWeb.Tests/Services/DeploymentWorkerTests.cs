@@ -6,6 +6,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using Microsoft.AspNetCore.SignalR;
+using AzureDeploymentWeb.Hubs;
 
 namespace AzureDeploymentWeb.Tests.Services;
 
@@ -16,6 +18,7 @@ public class DeploymentWorkerTests
     private readonly Mock<ILogger<DeploymentWorker>> _mockLogger;
     private readonly Mock<IAzureDeploymentService> _mockDeploymentService;
     private readonly Mock<DeploymentMonitoringService> _mockMonitoringService;
+    private readonly Mock<IHubContext<DeploymentHub>> _mockHubContext;
     private readonly DeploymentWorker _worker;
 
     public DeploymentWorkerTests()
@@ -24,6 +27,7 @@ public class DeploymentWorkerTests
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockLogger = new Mock<ILogger<DeploymentWorker>>();
         _mockDeploymentService = new Mock<IAzureDeploymentService>();
+        _mockHubContext = new Mock<IHubContext<DeploymentHub>>();
         _mockMonitoringService = new Mock<DeploymentMonitoringService>(
             Mock.Of<IServiceProvider>(),
             Mock.Of<Microsoft.AspNetCore.SignalR.IHubContext<Hubs.DeploymentHub>>(),
@@ -31,7 +35,7 @@ public class DeploymentWorkerTests
             Mock.Of<Microsoft.Extensions.Options.IOptions<CacheOptions>>(),
             Mock.Of<ILogger<DeploymentMonitoringService>>());
 
-        _worker = new DeploymentWorker(_mockQueueService.Object, _mockServiceProvider.Object, _mockLogger.Object);
+        _worker = new DeploymentWorker(_mockQueueService.Object, _mockServiceProvider.Object, _mockLogger.Object, _mockHubContext.Object);
     }
 
     [Fact]

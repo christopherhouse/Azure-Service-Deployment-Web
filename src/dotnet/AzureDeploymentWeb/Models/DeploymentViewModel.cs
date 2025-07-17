@@ -8,9 +8,9 @@ namespace AzureDeploymentWeb.Models
     {
         Unknown,
         Queued,
+        Started,
         Accepted,
         Running,
-        Creating,
         Succeeded,
         Failed,
         Canceled,
@@ -27,7 +27,6 @@ namespace AzureDeploymentWeb.Models
                 "failed" => DeploymentStatus.Failed,
                 "running" => DeploymentStatus.Running,
                 "accepted" => DeploymentStatus.Accepted,
-                "creating" => DeploymentStatus.Creating,
                 "canceled" => DeploymentStatus.Canceled,
                 "queued" => DeploymentStatus.Queued,
                 "error" => DeploymentStatus.Error,
@@ -85,7 +84,7 @@ namespace AzureDeploymentWeb.Models
         public string ResourceGroup { get; set; } = string.Empty;
         public string? Message { get; set; }
         public bool IsSuccessful => Status == DeploymentStatus.Succeeded;
-        public bool IsRunning => Status == DeploymentStatus.Running || Status == DeploymentStatus.Accepted || Status == DeploymentStatus.Creating;
+        public bool IsRunning => Status == DeploymentStatus.Running || Status == DeploymentStatus.Accepted || Status == DeploymentStatus.Started;
         public bool HasError => Status == DeploymentStatus.Failed || Status == DeploymentStatus.Canceled || Status == DeploymentStatus.Error;
         public bool IsCompleted => IsSuccessful || HasError;
     }

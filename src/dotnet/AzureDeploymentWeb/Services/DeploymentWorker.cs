@@ -1,4 +1,6 @@
 using AzureDeploymentWeb.Models;
+using Microsoft.AspNetCore.SignalR;
+using AzureDeploymentWeb.Hubs;
 
 namespace AzureDeploymentWeb.Services
 {
@@ -7,15 +9,18 @@ namespace AzureDeploymentWeb.Services
         private readonly IDeploymentQueueService _queueService;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<DeploymentWorker> _logger;
+        private readonly IHubContext<DeploymentHub> _hubContext;
 
         public DeploymentWorker(
             IDeploymentQueueService queueService,
             IServiceProvider serviceProvider,
-            ILogger<DeploymentWorker> logger)
+            ILogger<DeploymentWorker> logger,
+            IHubContext<DeploymentHub> hubContext)
         {
             _queueService = queueService;
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -69,6 +74,22 @@ namespace AzureDeploymentWeb.Services
                 {
                     _logger.LogInformation("Successfully started deployment {DeploymentName} for job {JobId}", 
                         job.DeploymentName, job.JobId);
+
+                    // Send "Started" status notification to the user
+                    var startedNotification = new DeploymentNotification
+                    {
+                        DeploymentName = job.DeploymentName,
+                        Status = DeploymentStatus.Started,
+                        StartTime = job.StartTime,
+                        ResourceGroup = job.ResourceGroupName,
+                        Message = "Deployment has been successfully submitted to Azure and is starting..."
+                    };
+
+                    await _hubContext.Clients.Group($"user_{job.UserName}")
+                        .SendAsync("DeploymentStatusUpdate", startedNotification);
+
+                    _logger.LogInformation("Sent 'Started' status notification for deployment {DeploymentName} to user {UserName}", 
+                        job.DeploymentName, job.UserName);
 
                     // Start tracking the deployment using existing monitoring service
                     var monitoringService = scope.ServiceProvider.GetServices<IHostedService>()

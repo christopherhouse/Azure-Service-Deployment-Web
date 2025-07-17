@@ -181,7 +181,7 @@ public class DeploymentNotificationTests
     [Theory]
     [InlineData(DeploymentStatus.Running)]
     [InlineData(DeploymentStatus.Accepted)]
-    [InlineData(DeploymentStatus.Creating)]
+    [InlineData(DeploymentStatus.Started)]
     [Trait("Category", "Unit")]
     public void DeploymentNotification_WhenStatusIsInProgress_IsRunningShouldBeTrue(DeploymentStatus status)
     {

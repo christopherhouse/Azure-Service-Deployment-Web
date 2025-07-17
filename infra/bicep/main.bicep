@@ -43,6 +43,7 @@ var logAnalyticsWorkspaceName = 'log-${workloadName}-${environmentName}'
 var keyVaultName = 'kv-${workloadName}-${environmentName}'
 var redisCacheName = 'redis-${workloadName}-${environmentName}'
 var signalRName = 'signalr-${workloadName}-${environmentName}'
+var serviceBusNamespaceName = 'sb-${workloadName}-${environmentName}'
 var appServicePlanName = 'asp-${workloadName}-${environmentName}'
 var webAppName = 'app-${workloadName}-${environmentName}'
 var userAssignedIdentityName = 'id-${workloadName}-${environmentName}'
@@ -115,6 +116,51 @@ module signalR 'modules/signalr.bicep' = {
   }
 }
 
+// Deploy Service Bus namespace
+module serviceBusNamespace 'modules/service-bus-namespace.bicep' = {
+  name: 'deploy-servicebus-namespace-${deployment().name}'
+  params: {
+    name: serviceBusNamespaceName
+    location: location
+    logAnalyticsWorkspaceId: logAnalytics.outputs.workspaceId
+    skuTier: 'Standard'
+    tags: tags
+  }
+}
+
+// Deploy Service Bus topic for deployments
+module serviceBusTopic 'modules/service-bus-topic.bicep' = {
+  name: 'deploy-servicebus-topic-${deployment().name}'
+  params: {
+    namespaceName: serviceBusNamespace.outputs.serviceBusNamespaceName
+    topicName: 'deployments'
+    maxSizeInMegabytes: 1024
+    enablePartitioning: false
+  }
+}
+
+// Deploy Service Bus subscription for all messages
+module serviceBusSubscription 'modules/service-bus-subscription.bicep' = {
+  name: 'deploy-servicebus-subscription-${deployment().name}'
+  params: {
+    namespaceName: serviceBusNamespace.outputs.serviceBusNamespaceName
+    topicName: 'deployments'
+    subscriptionName: 'all-messages'
+    maxDeliveryCount: 10
+    deadLetteringOnMessageExpiration: true
+  }
+}
+
+// Deploy Service Bus RBAC assignment for managed identity
+module serviceBusRbac 'modules/service-bus-rbac.bicep' = {
+  name: 'deploy-servicebus-rbac-${deployment().name}'
+  params: {
+    serviceBusNamespaceName: serviceBusNamespace.outputs.serviceBusNamespaceName
+    principalId: managedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // Deploy Application Insights
 module applicationInsights 'modules/application-insights.bicep' = {
   name: 'deploy-applicationinsights-${deployment().name}'
@@ -126,7 +172,7 @@ module applicationInsights 'modules/application-insights.bicep' = {
   }
 }
 
-// Create connection string secrets for Redis and SignalR
+// Create connection string secrets for Redis, SignalR
 module connectionStringSecrets 'modules/connection-string-secrets.bicep' = {
   name: 'connection-string-secrets-${deployment().name}'
   params: {
@@ -152,6 +198,8 @@ module appService 'modules/app-service.bicep' = {
     azureAdCallbackPath: azureAdCallbackPath
     cacheRedisConnectionStringUri: connectionStringSecrets.outputs.redisConnectionStringSecretUri
     azureSignalRConnectionStringUri: connectionStringSecrets.outputs.signalRConnectionStringSecretUri
+    serviceBusNamespaceEndpoint: serviceBusNamespace.outputs.serviceBusEndpoint
+    serviceBusClientId: managedIdentity.outputs.clientId
     applicationInsightsName: applicationInsights.outputs.applicationInsightsName
     tags: tags
     appStartupCommand: appStartupCommand
@@ -218,3 +266,12 @@ output applicationInsightsId string = applicationInsights.outputs.applicationIns
 
 @description('The name of the Application Insights component')
 output applicationInsightsName string = applicationInsights.outputs.applicationInsightsName
+
+@description('The resource ID of the Service Bus namespace')
+output serviceBusNamespaceId string = serviceBusNamespace.outputs.serviceBusNamespaceId
+
+@description('The name of the Service Bus namespace')
+output serviceBusNamespaceName string = serviceBusNamespace.outputs.serviceBusNamespaceName
+
+@description('The endpoint of the Service Bus namespace')
+output serviceBusEndpoint string = serviceBusNamespace.outputs.serviceBusEndpoint

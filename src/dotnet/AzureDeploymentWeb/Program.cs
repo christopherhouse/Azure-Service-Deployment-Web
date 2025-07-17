@@ -10,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Bind AzureAdOptions from configuration and register with DI
 builder.Services.Configure<AzureAdOptions>(builder.Configuration.GetSection(AzureAdOptions.SectionName));
 
+// Bind ServiceBusOptions from configuration
+builder.Services.Configure<ServiceBusOptions>(builder.Configuration.GetSection(ServiceBusOptions.SectionName));
+
 var clientId = builder.Configuration["AzureAd:ClientId"];
 var clientSecret = builder.Configuration["AzureAd:ClientSecret"];
 
@@ -64,8 +67,21 @@ builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 builder.Services.AddScoped<IAzureResourceDiscoveryService, AzureResourceDiscoveryService>();
 
 // Register deployment queue services
-builder.Services.AddSingleton<IDeploymentQueueService, DeploymentQueueService>();
-builder.Services.AddHostedService<DeploymentWorker>();
+var serviceBusNamespaceEndpoint = builder.Configuration["ServiceBus:NamespaceEndpoint"];
+if (!string.IsNullOrEmpty(serviceBusNamespaceEndpoint))
+{
+    Console.WriteLine("Using Service Bus deployment queue with managed identity authentication");
+    builder.Services.AddSingleton<IServiceBusDeploymentQueueService, ServiceBusDeploymentQueueService>();
+    builder.Services.AddSingleton<IDeploymentQueueService>(provider => 
+        provider.GetRequiredService<IServiceBusDeploymentQueueService>());
+    builder.Services.AddHostedService<ServiceBusDeploymentWorker>();
+}
+else
+{
+    Console.WriteLine("Using in-memory deployment queue (no Service Bus namespace endpoint provided)");
+    builder.Services.AddSingleton<IDeploymentQueueService, DeploymentQueueService>();
+    builder.Services.AddHostedService<DeploymentWorker>();
+}
 
 // Add SignalR
 var azureSignalRConnectionString = builder.Configuration["AzureSignalR:ConnectionString"];

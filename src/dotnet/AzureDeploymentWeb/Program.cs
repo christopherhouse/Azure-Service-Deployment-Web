@@ -64,6 +64,10 @@ if (!string.IsNullOrEmpty(clientId))
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 builder.Services.AddScoped<IAzureResourceDiscoveryService, AzureResourceDiscoveryService>();
 
+// Register deployment queue services
+builder.Services.AddSingleton<IDeploymentQueueService, DeploymentQueueService>();
+builder.Services.AddHostedService<DeploymentWorker>();
+
 // Add SignalR
 var azureSignalRConnectionString = builder.Configuration["AzureSignalR:ConnectionString"];
 if (!string.IsNullOrEmpty(azureSignalRConnectionString))

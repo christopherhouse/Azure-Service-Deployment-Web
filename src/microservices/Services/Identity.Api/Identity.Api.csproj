@@ -15,10 +15,15 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="8.0.11" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="8.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.Graph.Authentication" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../Shared/AzureDeploymentSaaS.Shared.Contracts/AzureDeploymentSaaS.Shared.Contracts.csproj" />
+    <ProjectReference Include="../../Shared/AzureDeploymentSaaS.Shared.Infrastructure/AzureDeploymentSaaS.Shared.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

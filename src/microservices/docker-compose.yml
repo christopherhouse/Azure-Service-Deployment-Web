@@ -1,0 +1,195 @@
+version: '3.8'
+
+services:
+  # Frontend React SPA
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - identity-api
+      - account-api
+      - template-library-api
+      - deployment-api
+      - billing-api
+    networks:
+      - saas-network
+
+  # Identity API - User and tenant management
+  identity-api:
+    build:
+      context: .
+      dockerfile: Services/Identity.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=IdentityDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - Azure__TenantId=${AZURE_TENANT_ID}
+      - Azure__ClientId=${AZURE_CLIENT_ID}
+      - Azure__ClientSecret=${AZURE_CLIENT_SECRET}
+    depends_on:
+      - sqlserver
+    networks:
+      - saas-network
+
+  # Account API - Tenant administration
+  account-api:
+    build:
+      context: .
+      dockerfile: Services/Account.Api/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AccountDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - IdentityApi__BaseUrl=http://identity-api:8080
+    depends_on:
+      - sqlserver
+      - identity-api
+    networks:
+      - saas-network
+
+  # Template Library API - ARM template management
+  template-library-api:
+    build:
+      context: .
+      dockerfile: Services/TemplateLibrary.Api/Dockerfile
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - CosmosDb__ConnectionString=${COSMOS_CONNECTION_STRING}
+      - CosmosDb__DatabaseName=TemplateLibrary
+      - CosmosDb__ContainerName=Templates
+      - AzureSearch__ServiceName=${AZURE_SEARCH_SERVICE_NAME}
+      - AzureSearch__ApiKey=${AZURE_SEARCH_API_KEY}
+      - AzureSearch__IndexName=templates
+    depends_on:
+      - cosmos-emulator
+    networks:
+      - saas-network
+
+  # Deployment API - ARM deployment management
+  deployment-api:
+    build:
+      context: .
+      dockerfile: Services/Deployment.Api/Dockerfile
+    ports:
+      - "5004:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - CosmosDb__ConnectionString=${COSMOS_CONNECTION_STRING}
+      - CosmosDb__DatabaseName=Deployments
+      - CosmosDb__ContainerName=DeploymentHistory
+      - Azure__SubscriptionId=${AZURE_SUBSCRIPTION_ID}
+      - Azure__TenantId=${AZURE_TENANT_ID}
+      - Azure__ClientId=${AZURE_CLIENT_ID}
+      - Azure__ClientSecret=${AZURE_CLIENT_SECRET}
+      - TemplateLibraryApi__BaseUrl=http://template-library-api:8080
+    depends_on:
+      - cosmos-emulator
+      - template-library-api
+    networks:
+      - saas-network
+
+  # Billing API - Subscription and billing management
+  billing-api:
+    build:
+      context: .
+      dockerfile: Services/Billing.Api/Dockerfile
+    ports:
+      - "5005:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=BillingDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
+      - Stripe__PublishableKey=${STRIPE_PUBLISHABLE_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+      - AccountApi__BaseUrl=http://account-api:8080
+    depends_on:
+      - sqlserver
+      - account-api
+    networks:
+      - saas-network
+
+  # SQL Server for relational data (Identity, Account, Billing)
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - saas-network
+
+  # Cosmos DB Emulator for document data (Templates, Deployments)
+  cosmos-emulator:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    ports:
+      - "8081:8081"
+      - "10251:10251"
+      - "10252:10252"
+      - "10253:10253"
+      - "10254:10254"
+    environment:
+      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10
+      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
+      - AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1
+    volumes:
+      - cosmos-data:/tmp/cosmos/appdata
+    networks:
+      - saas-network
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - saas-network
+
+  # Application Gateway / Reverse Proxy
+  nginx-gateway:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - identity-api
+      - account-api
+      - template-library-api
+      - deployment-api
+      - billing-api
+    networks:
+      - saas-network
+
+volumes:
+  sqlserver-data:
+    driver: local
+  cosmos-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  saas-network:
+    driver: bridge

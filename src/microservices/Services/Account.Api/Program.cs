@@ -8,9 +8,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { 
-        Title = "Identity API", 
+        Title = "Account API", 
         Version = "v1",
-        Description = "Microservice for user and tenant management with Microsoft Entra External ID integration"
+        Description = "Microservice for tenant and user administration"
     });
 });
 
@@ -37,7 +37,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Identity API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Account API v1");
         c.RoutePrefix = string.Empty;
     });
 }

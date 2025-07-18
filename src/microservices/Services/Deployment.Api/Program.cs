@@ -1,4 +1,6 @@
 using AzureDeploymentSaaS.Shared.Infrastructure.Extensions;
+using AzureDeploymentSaaS.Shared.Contracts.Services;
+using Deployment.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,9 +10,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { 
-        Title = "Identity API", 
+        Title = "Deployment API", 
         Version = "v1",
-        Description = "Microservice for user and tenant management with Microsoft Entra External ID integration"
+        Description = "Microservice for Azure ARM template deployments with real-time status tracking"
     });
 });
 
@@ -22,6 +24,9 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Add CORS for SaaS frontend
 builder.Services.AddSaasCors(builder.Configuration);
+
+// Add application services
+builder.Services.AddScoped<IDeploymentService, AzureDeploymentService>();
 
 // Add health checks
 builder.Services.AddHealthChecks();
@@ -37,16 +42,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Identity API v1");
-        c.RoutePrefix = string.Empty;
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Deployment API v1");
+        c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
     });
 }
 
 app.UseHttpsRedirection();
+
+// Enable CORS
 app.UseCors("SaasPolicy");
+
+// Add authentication & authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add health check endpoint
 app.MapHealthChecks("/health");
+
 app.MapControllers();
 
 app.Run();

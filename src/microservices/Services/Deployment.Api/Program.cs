@@ -1,11 +1,12 @@
 using AzureDeploymentSaaS.Shared.Infrastructure.Extensions;
 using AzureDeploymentSaaS.Shared.Contracts.Services;
 using Deployment.Api.Services;
+using Deployment.Api.Endpoints;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -27,6 +28,9 @@ builder.Services.AddSaasCors(builder.Configuration);
 
 // Add application services
 builder.Services.AddScoped<IDeploymentService, AzureDeploymentService>();
+
+// Add validators
+builder.Services.AddScoped<IValidator<CreateDeploymentRequest>, CreateDeploymentRequestValidator>();
 
 // Add health checks
 builder.Services.AddHealthChecks();
@@ -59,6 +63,7 @@ app.UseAuthorization();
 // Add health check endpoint
 app.MapHealthChecks("/health");
 
-app.MapControllers();
+// Map API endpoints
+app.MapDeploymentEndpoints();
 
 app.Run();

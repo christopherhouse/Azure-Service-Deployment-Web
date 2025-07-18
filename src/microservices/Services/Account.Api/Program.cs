@@ -1,9 +1,13 @@
 using AzureDeploymentSaaS.Shared.Infrastructure.Extensions;
+using AzureDeploymentSaaS.Shared.Contracts.Services;
+using Account.Api.Services;
+using Account.Api.Endpoints;
+using FluentValidation;
+using Identity.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -22,6 +26,22 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Add CORS for SaaS frontend
 builder.Services.AddSaasCors(builder.Configuration);
+
+// Add authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
+// Add application services
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Add validators
+builder.Services.AddScoped<IValidator<SuspendTenantRequest>, SuspendTenantRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateLimitsRequest>, UpdateLimitsRequestValidator>();
+builder.Services.AddScoped<IValidator<UpgradePlanRequest>, UpgradePlanRequestValidator>();
 
 // Add health checks
 builder.Services.AddHealthChecks();
@@ -47,6 +67,8 @@ app.UseCors("SaasPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health");
-app.MapControllers();
+
+// Map API endpoints
+app.MapAccountEndpoints();
 
 app.Run();

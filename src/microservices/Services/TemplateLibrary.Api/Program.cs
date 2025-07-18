@@ -2,11 +2,12 @@ using AzureDeploymentSaaS.Shared.Infrastructure.Extensions;
 using AzureDeploymentSaaS.Shared.Contracts.Services;
 using TemplateLibrary.Api.Services;
 using TemplateLibrary.Api.Models;
+using TemplateLibrary.Api.Endpoints;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -28,6 +29,10 @@ builder.Services.AddSaasCors(builder.Configuration);
 
 // Add application services
 builder.Services.AddScoped<ITemplateService, TemplateService>();
+
+// Add validators
+builder.Services.AddScoped<IValidator<CreateTemplateRequest>, CreateTemplateRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateTemplateRequest>, UpdateTemplateRequestValidator>();
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(TemplateProfile));
@@ -63,6 +68,7 @@ app.UseAuthorization();
 // Add health check endpoint
 app.MapHealthChecks("/health");
 
-app.MapControllers();
+// Map API endpoints
+app.MapTemplateEndpoints();
 
 app.Run();

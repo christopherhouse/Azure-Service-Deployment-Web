@@ -1,9 +1,12 @@
 using AzureDeploymentSaaS.Shared.Infrastructure.Extensions;
+using AzureDeploymentSaaS.Shared.Contracts.Services;
+using Identity.Api.Services;
+using Identity.Api.Endpoints;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -22,6 +25,16 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Add CORS for SaaS frontend
 builder.Services.AddSaasCors(builder.Configuration);
+
+// Add application services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+
+// Add validators
+builder.Services.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateTenantRequest>, CreateTenantRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateTenantRequest>, UpdateTenantRequestValidator>();
 
 // Add health checks
 builder.Services.AddHealthChecks();
@@ -47,6 +60,9 @@ app.UseCors("SaasPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health");
-app.MapControllers();
+
+// Map API endpoints
+app.MapUserEndpoints();
+app.MapTenantEndpoints();
 
 app.Run();

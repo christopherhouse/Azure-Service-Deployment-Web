@@ -1,9 +1,11 @@
 using AzureDeploymentSaaS.Shared.Infrastructure.Extensions;
+using Billing.Api.Services;
+using Billing.Api.Endpoints;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -22,6 +24,15 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Add CORS for SaaS frontend
 builder.Services.AddSaasCors(builder.Configuration);
+
+// Add application services
+builder.Services.AddScoped<IBillingService, BillingService>();
+
+// Add validators
+builder.Services.AddScoped<IValidator<CreateSubscriptionRequest>, CreateSubscriptionRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateSubscriptionPlanRequest>, UpdateSubscriptionPlanRequestValidator>();
+builder.Services.AddScoped<IValidator<CancelSubscriptionRequest>, CancelSubscriptionRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdatePaymentMethodRequest>, UpdatePaymentMethodRequestValidator>();
 
 // Add health checks
 builder.Services.AddHealthChecks();
@@ -47,6 +58,8 @@ app.UseCors("SaasPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health");
-app.MapControllers();
+
+// Map API endpoints
+app.MapBillingEndpoints();
 
 app.Run();

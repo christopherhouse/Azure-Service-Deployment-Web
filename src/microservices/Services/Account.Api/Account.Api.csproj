@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Shared/AzureDeploymentSaaS.Shared.Contracts/AzureDeploymentSaaS.Shared.Contracts.csproj" />
     <ProjectReference Include="../../Shared/AzureDeploymentSaaS.Shared.Infrastructure/AzureDeploymentSaaS.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="../Identity.Api/Identity.Api.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,117 +1,123 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using AzureDeploymentSaaS.Shared.Contracts.Models;
 using AzureDeploymentSaaS.Shared.Contracts.Services;
-using TemplateLibrary.Api.Services;
 using FluentValidation;
+using System.Security.Claims;
 
-namespace TemplateLibrary.Api.Controllers;
+namespace TemplateLibrary.Api.Endpoints;
 
-[ApiController]
-[Route("api/v1/[controller]")]
-[Authorize]
-public class TemplatesController : ControllerBase
+public static class TemplateEndpoints
 {
-    private readonly ILogger<TemplatesController> _logger;
-    private readonly ITemplateService _templateService;
-
-    public TemplatesController(ILogger<TemplatesController> logger, ITemplateService templateService)
+    public static void MapTemplateEndpoints(this IEndpointRouteBuilder app)
     {
-        _logger = logger;
-        _templateService = templateService;
+        var group = app.MapGroup("api/v1/templates")
+            .WithTags("Templates")
+            .RequireAuthorization();
+
+        group.MapGet("/", GetTemplates)
+            .WithName("GetTemplates")
+            .WithOpenApi();
+
+        group.MapGet("/{id:guid}", GetTemplate)
+            .WithName("GetTemplate")
+            .WithOpenApi();
+
+        group.MapPost("/", CreateTemplate)
+            .WithName("CreateTemplate")
+            .WithOpenApi();
+
+        group.MapPut("/{id:guid}", UpdateTemplate)
+            .WithName("UpdateTemplate")
+            .WithOpenApi();
+
+        group.MapDelete("/{id:guid}", DeleteTemplate)
+            .WithName("DeleteTemplate")
+            .WithOpenApi();
+
+        group.MapGet("/search", SearchTemplates)
+            .WithName("SearchTemplates")
+            .WithOpenApi();
     }
 
-    /// <summary>
-    /// Get all templates for the current user's tenant
-    /// </summary>
-    [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<TemplateDto>), 200)]
-    [ProducesResponseType(401)]
-    [ProducesResponseType(500)]
-    public async Task<ActionResult<IEnumerable<TemplateDto>>> GetTemplates(
-        [FromQuery] string? category = null,
-        [FromQuery] string? search = null,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+    private static async Task<IResult> GetTemplates(
+        ITemplateService templateService,
+        ClaimsPrincipal user,
+        ILogger<ITemplateService> logger,
+        string? category = null,
+        string? search = null,
+        int page = 1,
+        int pageSize = 20)
     {
         try
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-            var tenantId = GetTenantId();
-            var templates = await _templateService.GetTemplatesAsync(tenantId, category, search, page, pageSize);
-            return Ok(templates);
+            var tenantId = GetTenantId(user);
+            var templates = await templateService.GetTemplatesAsync(tenantId, category, search, page, pageSize);
+            return Results.Ok(templates);
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized access attempt to get templates");
-            return Unauthorized();
+            logger.LogWarning(ex, "Unauthorized access attempt to get templates");
+            return Results.Unauthorized();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving templates");
-            return StatusCode(500, new { error = "Internal server error", message = "Failed to retrieve templates" });
+            logger.LogError(ex, "Error retrieving templates");
+            return Results.Problem("Failed to retrieve templates", statusCode: 500);
         }
     }
 
-    /// <summary>
-    /// Get a specific template by ID
-    /// </summary>
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(TemplateDto), 200)]
-    [ProducesResponseType(401)]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500)]
-    public async Task<ActionResult<TemplateDto>> GetTemplate(Guid id)
+    private static async Task<IResult> GetTemplate(
+        Guid id,
+        ITemplateService templateService,
+        ClaimsPrincipal user,
+        ILogger<ITemplateService> logger)
     {
         try
         {
-            var tenantId = GetTenantId();
-            var template = await _templateService.GetTemplateAsync(id, tenantId);
+            var tenantId = GetTenantId(user);
+            var template = await templateService.GetTemplateAsync(id, tenantId);
             
             if (template == null)
-                return NotFound(new { error = "Template not found", templateId = id });
+                return Results.NotFound(new { error = "Template not found", templateId = id });
 
-            return Ok(template);
+            return Results.Ok(template);
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized access attempt to get template {TemplateId}", id);
-            return Unauthorized();
+            logger.LogWarning(ex, "Unauthorized access attempt to get template {TemplateId}", id);
+            return Results.Unauthorized();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving template {TemplateId}", id);
-            return StatusCode(500, new { error = "Internal server error", message = "Failed to retrieve template" });
+            logger.LogError(ex, "Error retrieving template {TemplateId}", id);
+            return Results.Problem("Failed to retrieve template", statusCode: 500);
         }
     }
 
-    /// <summary>
-    /// Create a new ARM template
-    /// </summary>
-    [HttpPost]
-    [ProducesResponseType(typeof(TemplateDto), 201)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(401)]
-    [ProducesResponseType(500)]
-    public async Task<ActionResult<TemplateDto>> CreateTemplate([FromBody] CreateTemplateRequest request)
+    private static async Task<IResult> CreateTemplate(
+        CreateTemplateRequest request,
+        ITemplateService templateService,
+        ClaimsPrincipal user,
+        ILogger<ITemplateService> logger,
+        IValidator<CreateTemplateRequest> validator)
     {
         try
         {
-            var validator = new CreateTemplateRequestValidator();
             var validationResult = await validator.ValidateAsync(request);
             
             if (!validationResult.IsValid)
             {
-                return BadRequest(new { 
+                return Results.BadRequest(new { 
                     error = "Validation failed", 
                     errors = validationResult.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) 
                 });
             }
 
-            var tenantId = GetTenantId();
-            var userId = GetUserId();
+            var tenantId = GetTenantId(user);
+            var userId = GetUserId(user);
             
             var template = new TemplateDto
             {
@@ -130,50 +136,46 @@ public class TemplatesController : ControllerBase
                 IsPublic = request.IsPublic
             };
 
-            var createdTemplate = await _templateService.CreateTemplateAsync(template);
-            return CreatedAtAction(nameof(GetTemplate), new { id = createdTemplate.Id }, createdTemplate);
+            var createdTemplate = await templateService.CreateTemplateAsync(template);
+            return Results.Created($"/api/v1/templates/{createdTemplate.Id}", createdTemplate);
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized access attempt to create template");
-            return Unauthorized();
+            logger.LogWarning(ex, "Unauthorized access attempt to create template");
+            return Results.Unauthorized();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating template");
-            return StatusCode(500, new { error = "Internal server error", message = "Failed to create template" });
+            logger.LogError(ex, "Error creating template");
+            return Results.Problem("Failed to create template", statusCode: 500);
         }
     }
 
-    /// <summary>
-    /// Update an existing template
-    /// </summary>
-    [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(TemplateDto), 200)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(401)]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500)]
-    public async Task<ActionResult<TemplateDto>> UpdateTemplate(Guid id, [FromBody] UpdateTemplateRequest request)
+    private static async Task<IResult> UpdateTemplate(
+        Guid id,
+        UpdateTemplateRequest request,
+        ITemplateService templateService,
+        ClaimsPrincipal user,
+        ILogger<ITemplateService> logger,
+        IValidator<UpdateTemplateRequest> validator)
     {
         try
         {
-            var validator = new UpdateTemplateRequestValidator();
             var validationResult = await validator.ValidateAsync(request);
             
             if (!validationResult.IsValid)
             {
-                return BadRequest(new { 
+                return Results.BadRequest(new { 
                     error = "Validation failed", 
                     errors = validationResult.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) 
                 });
             }
 
-            var tenantId = GetTenantId();
-            var existingTemplate = await _templateService.GetTemplateAsync(id, tenantId);
+            var tenantId = GetTenantId(user);
+            var existingTemplate = await templateService.GetTemplateAsync(id, tenantId);
             
             if (existingTemplate == null)
-                return NotFound(new { error = "Template not found", templateId = id });
+                return Results.NotFound(new { error = "Template not found", templateId = id });
 
             existingTemplate.Name = request.Name;
             existingTemplate.Description = request.Description;
@@ -184,94 +186,85 @@ public class TemplatesController : ControllerBase
             existingTemplate.ModifiedAt = DateTime.UtcNow;
             existingTemplate.IsPublic = request.IsPublic;
 
-            var updatedTemplate = await _templateService.UpdateTemplateAsync(existingTemplate);
-            return Ok(updatedTemplate);
+            var updatedTemplate = await templateService.UpdateTemplateAsync(existingTemplate);
+            return Results.Ok(updatedTemplate);
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized access attempt to update template {TemplateId}", id);
-            return Unauthorized();
+            logger.LogWarning(ex, "Unauthorized access attempt to update template {TemplateId}", id);
+            return Results.Unauthorized();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating template {TemplateId}", id);
-            return StatusCode(500, new { error = "Internal server error", message = "Failed to update template" });
+            logger.LogError(ex, "Error updating template {TemplateId}", id);
+            return Results.Problem("Failed to update template", statusCode: 500);
         }
     }
 
-    /// <summary>
-    /// Delete a template
-    /// </summary>
-    [HttpDelete("{id:guid}")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(401)]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500)]
-    public async Task<IActionResult> DeleteTemplate(Guid id)
+    private static async Task<IResult> DeleteTemplate(
+        Guid id,
+        ITemplateService templateService,
+        ClaimsPrincipal user,
+        ILogger<ITemplateService> logger)
     {
         try
         {
-            var tenantId = GetTenantId();
-            var template = await _templateService.GetTemplateAsync(id, tenantId);
+            var tenantId = GetTenantId(user);
+            var template = await templateService.GetTemplateAsync(id, tenantId);
             
             if (template == null)
-                return NotFound(new { error = "Template not found", templateId = id });
+                return Results.NotFound(new { error = "Template not found", templateId = id });
 
-            await _templateService.DeleteTemplateAsync(id, tenantId);
-            return NoContent();
+            await templateService.DeleteTemplateAsync(id, tenantId);
+            return Results.NoContent();
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized access attempt to delete template {TemplateId}", id);
-            return Unauthorized();
+            logger.LogWarning(ex, "Unauthorized access attempt to delete template {TemplateId}", id);
+            return Results.Unauthorized();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting template {TemplateId}", id);
-            return StatusCode(500, new { error = "Internal server error", message = "Failed to delete template" });
+            logger.LogError(ex, "Error deleting template {TemplateId}", id);
+            return Results.Problem("Failed to delete template", statusCode: 500);
         }
     }
 
-    /// <summary>
-    /// Search templates by content using Azure AI Search
-    /// </summary>
-    [HttpGet("search")]
-    [ProducesResponseType(typeof(IEnumerable<TemplateDto>), 200)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(401)]
-    [ProducesResponseType(500)]
-    public async Task<ActionResult<IEnumerable<TemplateDto>>> SearchTemplates(
-        [FromQuery] string query,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+    private static async Task<IResult> SearchTemplates(
+        string query,
+        ITemplateService templateService,
+        ClaimsPrincipal user,
+        ILogger<ITemplateService> logger,
+        int page = 1,
+        int pageSize = 20)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(query))
-                return BadRequest(new { error = "Search query is required" });
+                return Results.BadRequest(new { error = "Search query is required" });
 
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-            var tenantId = GetTenantId();
-            var templates = await _templateService.SearchTemplatesAsync(query, tenantId, page, pageSize);
-            return Ok(templates);
+            var tenantId = GetTenantId(user);
+            var templates = await templateService.SearchTemplatesAsync(query, tenantId, page, pageSize);
+            return Results.Ok(templates);
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized access attempt to search templates");
-            return Unauthorized();
+            logger.LogWarning(ex, "Unauthorized access attempt to search templates");
+            return Results.Unauthorized();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error searching templates with query: {Query}", query);
-            return StatusCode(500, new { error = "Internal server error", message = "Failed to search templates" });
+            logger.LogError(ex, "Error searching templates with query: {Query}", query);
+            return Results.Problem("Failed to search templates", statusCode: 500);
         }
     }
 
-    private Guid GetTenantId()
+    private static Guid GetTenantId(ClaimsPrincipal user)
     {
-        var tenantClaim = User.FindFirst("tenant_id")?.Value ?? User.FindFirst("extension_tenant_id")?.Value;
+        var tenantClaim = user.FindFirst("tenant_id")?.Value ?? user.FindFirst("extension_tenant_id")?.Value;
         if (string.IsNullOrEmpty(tenantClaim) || !Guid.TryParse(tenantClaim, out var tenantId))
         {
             throw new UnauthorizedAccessException("Invalid tenant information");
@@ -279,9 +272,9 @@ public class TemplatesController : ControllerBase
         return tenantId;
     }
 
-    private Guid GetUserId()
+    private static Guid GetUserId(ClaimsPrincipal user)
     {
-        var userClaim = User.FindFirst("sub")?.Value ?? User.FindFirst("oid")?.Value;
+        var userClaim = user.FindFirst("sub")?.Value ?? user.FindFirst("oid")?.Value;
         if (string.IsNullOrEmpty(userClaim) || !Guid.TryParse(userClaim, out var userId))
         {
             throw new UnauthorizedAccessException("Invalid user information");

@@ -15,7 +15,7 @@ The platform consists of:
 - **SQL Server**: Relational database for user/billing data
 - **Cosmos DB Emulator**: Document database for templates/deployments
 - **Redis**: Caching and session storage
-- **Nginx**: Reverse proxy and API gateway (Port 8080)
+- **YARP Gateway**: .NET-based reverse proxy and API gateway (Port 8080)
 
 ## 🚀 Quick Start
 
@@ -187,7 +187,7 @@ curl http://localhost:5005/health
 | SQL Server | 0.5 | 2GB | Microsoft SQL Server |
 | Cosmos Emulator | 1.0 | 3GB | Azure Cosmos DB Emulator |
 | Redis | 0.1 | 64MB | In-memory cache |
-| Nginx Gateway | 0.1 | 32MB | Reverse proxy |
+| YARP Gateway | 0.1 | 128MB | .NET reverse proxy |
 
 ## 🔧 Customization
 
@@ -195,7 +195,7 @@ curl http://localhost:5005/health
 
 1. Create Dockerfile in new service directory
 2. Add service definition to `docker-compose.yml`
-3. Update nginx.conf for API routing
+3. Update YARP configuration in Gateway.Api/appsettings.json for API routing
 4. Add environment variables to `.env.example`
 
 ### Custom Database Configuration

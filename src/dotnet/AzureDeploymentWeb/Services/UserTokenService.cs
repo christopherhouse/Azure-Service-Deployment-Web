@@ -83,6 +83,22 @@ namespace AzureDeploymentWeb.Services
     }
 
     /// <summary>
+    /// No-op implementation of IUserTokenService for when authentication is not configured
+    /// </summary>
+    public class NoOpUserTokenService : IUserTokenService
+    {
+        public Task<TokenCredential?> GetUserTokenCredentialAsync()
+        {
+            return Task.FromResult<TokenCredential?>(null);
+        }
+
+        public Task<string?> GetAccessTokenAsync()
+        {
+            return Task.FromResult<string?>(null);
+        }
+    }
+
+    /// <summary>
     /// Simple implementation of TokenCredential that uses a pre-acquired access token
     /// </summary>
     public class AccessTokenCredential : TokenCredential

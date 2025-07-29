@@ -60,6 +60,14 @@ if (!string.IsNullOrEmpty(clientId))
 {
     builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
     controllersBuilder.AddMicrosoftIdentityUI();
+    
+    // Register UserTokenService only when authentication is configured
+    builder.Services.AddScoped<IUserTokenService, UserTokenService>();
+}
+else
+{
+    // Register a no-op implementation when authentication is not configured
+    builder.Services.AddScoped<IUserTokenService, NoOpUserTokenService>();
 }
 
 // Register HTTP context accessor
@@ -68,7 +76,6 @@ builder.Services.AddHttpContextAccessor();
 // Register Azure services
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 builder.Services.AddScoped<IAzureResourceDiscoveryService, AzureResourceDiscoveryService>();
-builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 
 // Register deployment queue services
 var serviceBusNamespaceEndpoint = builder.Configuration["ServiceBus:NamespaceEndpoint"];

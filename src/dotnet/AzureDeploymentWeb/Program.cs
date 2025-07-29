@@ -62,9 +62,13 @@ if (!string.IsNullOrEmpty(clientId))
     controllersBuilder.AddMicrosoftIdentityUI();
 }
 
+// Register HTTP context accessor
+builder.Services.AddHttpContextAccessor();
+
 // Register Azure services
 builder.Services.AddScoped<IAzureDeploymentService, AzureDeploymentService>();
 builder.Services.AddScoped<IAzureResourceDiscoveryService, AzureResourceDiscoveryService>();
+builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 
 // Register deployment queue services
 var serviceBusNamespaceEndpoint = builder.Configuration["ServiceBus:NamespaceEndpoint"];

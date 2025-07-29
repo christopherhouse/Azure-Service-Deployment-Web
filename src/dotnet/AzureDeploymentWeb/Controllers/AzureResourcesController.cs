@@ -9,11 +9,16 @@ namespace AzureDeploymentWeb.Controllers
     public class AzureResourcesController : ControllerBase
     {
         private readonly IAzureResourceDiscoveryService _discoveryService;
+        private readonly IUserTokenService _userTokenService;
         private readonly IConfiguration _configuration;
 
-        public AzureResourcesController(IAzureResourceDiscoveryService discoveryService, IConfiguration configuration)
+        public AzureResourcesController(
+            IAzureResourceDiscoveryService discoveryService, 
+            IUserTokenService userTokenService,
+            IConfiguration configuration)
         {
             _discoveryService = discoveryService;
+            _userTokenService = userTokenService;
             _configuration = configuration;
         }
 
@@ -41,7 +46,8 @@ namespace AzureDeploymentWeb.Controllers
 
             try
             {
-                var subscriptions = await _discoveryService.GetSubscriptionsAsync();
+                var userCredential = await _userTokenService.GetUserTokenCredentialAsync();
+                var subscriptions = await _discoveryService.GetSubscriptionsAsync(userCredential);
                 return Ok(subscriptions);
             }
             catch (Exception ex)
@@ -63,7 +69,8 @@ namespace AzureDeploymentWeb.Controllers
                     return BadRequest(new { error = "Subscription ID is required" });
                 }
 
-                var resourceGroups = await _discoveryService.GetResourceGroupsAsync(subscriptionId);
+                var userCredential = await _userTokenService.GetUserTokenCredentialAsync();
+                var resourceGroups = await _discoveryService.GetResourceGroupsAsync(subscriptionId, userCredential);
                 return Ok(resourceGroups);
             }
             catch (Exception ex)

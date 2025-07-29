@@ -144,7 +144,7 @@ module serviceBusSubscription 'modules/service-bus-subscription.bicep' = {
   name: 'deploy-servicebus-subscription-${deployment().name}'
   params: {
     namespaceName: serviceBusNamespace.outputs.serviceBusNamespaceName
-    topicName: 'deployments'
+    topicName: serviceBusTopic.outputs.serviceBusTopicName
     subscriptionName: 'all-messages'
     maxDeliveryCount: 10
     deadLetteringOnMessageExpiration: true

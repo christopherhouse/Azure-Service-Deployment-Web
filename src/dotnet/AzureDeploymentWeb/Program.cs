@@ -15,6 +15,12 @@ builder.Services.Configure<ServiceBusOptions>(builder.Configuration.GetSection(S
 
 var clientId = builder.Configuration["AzureAd:ClientId"];
 var clientSecret = builder.Configuration["AzureAd:ClientSecret"];
+var tenantId = builder.Configuration["AzureAd:TenantId"];
+
+// Validate that all required Azure AD configuration is present
+var isAzureAdConfigured = !string.IsNullOrEmpty(clientId) && 
+                         !string.IsNullOrEmpty(clientSecret) && 
+                         !string.IsNullOrEmpty(tenantId);
 
 // Configure cache options
 var cacheOptions = new CacheOptions();
@@ -55,17 +61,45 @@ else
     Console.WriteLine("Application Insights connection string not provided - telemetry disabled");
 }
 
-// Only configure Microsoft Identity Web if ClientId is provided
-if (!string.IsNullOrEmpty(clientId))
+// Only configure Microsoft Identity Web if all required Azure AD configuration is present
+if (isAzureAdConfigured)
 {
-    builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
-    controllersBuilder.AddMicrosoftIdentityUI();
-    
-    // Register UserTokenService only when authentication is configured
-    builder.Services.AddScoped<IUserTokenService, UserTokenService>();
+    try
+    {
+        Console.WriteLine("Configuring Microsoft Identity Web authentication");
+        
+        // Configure authentication first
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectDefaults.AuthenticationScheme;
+        });
+        
+        // Add Microsoft Identity Web services
+        builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+                       .EnableTokenAcquisitionToCallDownstreamApi()
+                       .AddInMemoryTokenCaches();
+        
+        // Add Microsoft Identity UI
+        controllersBuilder.AddMicrosoftIdentityUI();
+        
+        // Register UserTokenService only when authentication is configured
+        // (ITokenAcquisition is only available after AddMicrosoftIdentityWebAppAuthentication)
+        builder.Services.AddScoped<IUserTokenService, UserTokenService>();
+        
+        Console.WriteLine("Microsoft Identity Web authentication configured successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Failed to configure Microsoft Identity Web: {ex.Message}");
+        // Fall back to no-op service if authentication setup fails
+        builder.Services.AddScoped<IUserTokenService, NoOpUserTokenService>();
+        isAzureAdConfigured = false; // Update the flag so middleware isn't added
+    }
 }
 else
 {
+    Console.WriteLine("Azure AD not fully configured - using no-op token service");
     // Register a no-op implementation when authentication is not configured
     builder.Services.AddScoped<IUserTokenService, NoOpUserTokenService>();
 }
@@ -126,7 +160,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 // Only use authentication/authorization if Microsoft Identity Web is configured
-if (!string.IsNullOrEmpty(clientId))
+if (isAzureAdConfigured)
 {
     app.UseAuthentication();
     app.UseAuthorization();

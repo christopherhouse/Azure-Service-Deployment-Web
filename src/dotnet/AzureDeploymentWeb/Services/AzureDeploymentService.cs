@@ -11,10 +11,10 @@ namespace AzureDeploymentWeb.Services
 {
     public interface IAzureDeploymentService
     {
-        Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName);
-        Task<DeploymentStatus> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName);
-        Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName);
-        Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName, string subscriptionId, string resourceGroupName);
+        Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null);
+        Task<DeploymentStatus> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null);
+        Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null);
+        Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null);
     }
 
     public class DeploymentResult
@@ -30,21 +30,21 @@ namespace AzureDeploymentWeb.Services
 
     public class AzureDeploymentService : IAzureDeploymentService
     {
-        private readonly ArmClient _armClient;
         private readonly AzureAdOptions _azureAdOptions;
 
         public AzureDeploymentService(IOptions<AzureAdOptions> azureAdOptions)
         {
             _azureAdOptions = azureAdOptions?.Value ?? throw new ArgumentNullException(nameof(azureAdOptions));
-            _armClient = new ArmClient(CreateCredential(_azureAdOptions));
         }
 
-        public async Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName)
+        public async Task<DeploymentResult> DeployTemplateAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null)
         {
             try
             {
+                var armClient = GetArmClient(userCredential);
+                
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
@@ -103,12 +103,14 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName)
+        public async Task<DeploymentResult> StartAsyncDeploymentAsync(string templateContent, string parametersContent, string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null)
         {
             try
             {
+                var armClient = GetArmClient(userCredential);
+                
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
@@ -157,12 +159,14 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<DeploymentStatus> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName)
+        public async Task<DeploymentStatus> GetDeploymentStatusAsync(string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null)
         {
             try
             {
+                var armClient = GetArmClient(userCredential);
+                
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
@@ -181,12 +185,14 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName, string subscriptionId, string resourceGroupName)
+        public async Task<DeploymentNotification?> GetDeploymentDetailsAsync(string deploymentName, string subscriptionId, string resourceGroupName, TokenCredential? userCredential = null)
         {
             try
             {
+                var armClient = GetArmClient(userCredential);
+                
                 // Get subscription and resource group
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 var resourceGroups = subscription.GetResourceGroups();
                 var resourceGroup = await resourceGroups.GetAsync(resourceGroupName);
 
@@ -231,8 +237,20 @@ namespace AzureDeploymentWeb.Services
             return JsonSerializer.Deserialize<object>(parametersContent) ?? new object();
         }
 
-        // Place CreateCredential at the end of the class
-        private static DefaultAzureCredential CreateCredential(AzureAdOptions azureAdOptions)
+        private ArmClient GetArmClient(TokenCredential? userCredential)
+        {
+            // If user credential is provided, use it (user impersonation)
+            if (userCredential != null)
+            {
+                return new ArmClient(userCredential);
+            }
+            
+            // Fallback to managed identity/default credential (for backwards compatibility when auth not configured)
+            return new ArmClient(CreateDefaultCredential(_azureAdOptions));
+        }
+
+        // Renamed method to be clearer about its purpose
+        private static DefaultAzureCredential CreateDefaultCredential(AzureAdOptions azureAdOptions)
         {
             var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
             DefaultAzureCredentialOptions? options = null;

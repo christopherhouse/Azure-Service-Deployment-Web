@@ -11,17 +11,20 @@ namespace AzureDeploymentWeb.Controllers
     {
         private readonly IAzureDeploymentService _deploymentService;
         private readonly IDeploymentQueueService _queueService;
+        private readonly IUserTokenService _userTokenService;
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfiguration _configuration;
 
         public DeploymentController(
             IAzureDeploymentService deploymentService,
             IDeploymentQueueService queueService,
+            IUserTokenService userTokenService,
             IServiceProvider serviceProvider,
             IConfiguration configuration)
         {
             _deploymentService = deploymentService;
             _queueService = queueService;
+            _userTokenService = userTokenService;
             _serviceProvider = serviceProvider;
             _configuration = configuration;
         }
@@ -84,6 +87,9 @@ namespace AzureDeploymentWeb.Controllers
                 var startTime = DateTime.UtcNow;
                 var userName = User.Identity?.Name ?? "unknown";
 
+                // Get user access token for deployment processing
+                var userAccessToken = await _userTokenService.GetAccessTokenAsync();
+
                 // Create deployment job
                 var deploymentJob = new DeploymentJob
                 {
@@ -93,6 +99,7 @@ namespace AzureDeploymentWeb.Controllers
                     SubscriptionId = model.SelectedSubscriptionId!,
                     ResourceGroupName = model.SelectedResourceGroupName!,
                     UserName = userName,
+                    UserAccessToken = userAccessToken,
                     StartTime = startTime
                 };
 
@@ -135,7 +142,8 @@ namespace AzureDeploymentWeb.Controllers
 
             try
             {
-                var status = await _deploymentService.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName);
+                var userCredential = await _userTokenService.GetUserTokenCredentialAsync();
+                var status = await _deploymentService.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName, userCredential);
                 
                 var statusModel = new DeploymentStatusViewModel
                 {

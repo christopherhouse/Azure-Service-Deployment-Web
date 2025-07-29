@@ -1,3 +1,4 @@
+using Azure.Core;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using AzureDeploymentWeb.Models;
@@ -206,13 +207,21 @@ namespace AzureDeploymentWeb.Services
                 using var scope = _serviceProvider.CreateScope();
                 var deploymentService = scope.ServiceProvider.GetRequiredService<IAzureDeploymentService>();
                 
-                // Start the deployment using the existing service
+                // Create user credential from stored access token
+                TokenCredential? userCredential = null;
+                if (!string.IsNullOrEmpty(job.UserAccessToken))
+                {
+                    userCredential = new AccessTokenCredential(job.UserAccessToken);
+                }
+                
+                // Start the deployment using the user's credential
                 var result = await deploymentService.StartAsyncDeploymentAsync(
                     job.TemplateContent,
                     job.ParametersContent,
                     job.DeploymentName,
                     job.SubscriptionId,
-                    job.ResourceGroupName);
+                    job.ResourceGroupName,
+                    userCredential);
 
                 if (result.Success)
                 {

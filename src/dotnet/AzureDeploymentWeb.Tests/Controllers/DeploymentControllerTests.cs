@@ -1,3 +1,4 @@
+using Azure.Core;
 using AzureDeploymentWeb.Controllers;
 using AzureDeploymentWeb.Models;
 using AzureDeploymentWeb.Services;
@@ -17,6 +18,7 @@ public class DeploymentControllerTests
 {
     private readonly Mock<IAzureDeploymentService> _mockDeploymentService;
     private readonly Mock<IDeploymentQueueService> _mockQueueService;
+    private readonly Mock<IUserTokenService> _mockUserTokenService;
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly DeploymentController _controller;
@@ -25,12 +27,14 @@ public class DeploymentControllerTests
     {
         _mockDeploymentService = new Mock<IAzureDeploymentService>();
         _mockQueueService = new Mock<IDeploymentQueueService>();
+        _mockUserTokenService = new Mock<IUserTokenService>();
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockConfiguration = new Mock<IConfiguration>();
 
         _controller = new DeploymentController(
             _mockDeploymentService.Object,
             _mockQueueService.Object,
+            _mockUserTokenService.Object,
             _mockServiceProvider.Object,
             _mockConfiguration.Object);
 
@@ -129,7 +133,7 @@ public class DeploymentControllerTests
         const string resourceGroupName = "test-rg";
         const DeploymentStatus status = DeploymentStatus.Running;
 
-        _mockDeploymentService.Setup(ds => ds.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName))
+        _mockDeploymentService.Setup(ds => ds.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName, It.IsAny<TokenCredential?>()))
             .ReturnsAsync(status);
 
         // Act
@@ -170,7 +174,7 @@ public class DeploymentControllerTests
         const string subscriptionId = "test-subscription";
         const string resourceGroupName = "test-rg";
 
-        _mockDeploymentService.Setup(ds => ds.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName))
+        _mockDeploymentService.Setup(ds => ds.GetDeploymentStatusAsync(deploymentName, subscriptionId, resourceGroupName, It.IsAny<TokenCredential?>()))
             .ThrowsAsync(new Exception("Service error"));
 
         // Act

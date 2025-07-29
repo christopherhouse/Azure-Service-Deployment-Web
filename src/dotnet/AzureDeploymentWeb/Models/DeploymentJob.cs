@@ -9,6 +9,7 @@ namespace AzureDeploymentWeb.Models
         public string SubscriptionId { get; set; } = string.Empty;
         public string ResourceGroupName { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
+        public string? UserAccessToken { get; set; }
         public DateTime StartTime { get; set; } = DateTime.UtcNow;
     }
 }

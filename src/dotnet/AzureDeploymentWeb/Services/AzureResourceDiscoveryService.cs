@@ -11,8 +11,8 @@ namespace AzureDeploymentWeb.Services
 {
     public interface IAzureResourceDiscoveryService
     {
-        Task<List<SubscriptionInfo>> GetSubscriptionsAsync();
-        Task<List<ResourceGroupInfo>> GetResourceGroupsAsync(string subscriptionId);
+        Task<List<SubscriptionInfo>> GetSubscriptionsAsync(TokenCredential? userCredential = null);
+        Task<List<ResourceGroupInfo>> GetResourceGroupsAsync(string subscriptionId, TokenCredential? userCredential = null);
     }
 
     public class SubscriptionInfo
@@ -29,7 +29,6 @@ namespace AzureDeploymentWeb.Services
 
     public class AzureResourceDiscoveryService : IAzureResourceDiscoveryService
     {
-        private readonly ArmClient _armClient;
         private readonly IDistributedCache _cache;
         private readonly CacheOptions _cacheOptions;
         private readonly ILogger<AzureResourceDiscoveryService> _logger;
@@ -48,10 +47,9 @@ namespace AzureDeploymentWeb.Services
             _cacheOptions = cacheOptions?.Value ?? throw new ArgumentNullException(nameof(cacheOptions));
             _azureAdOptions = azureAdOptions?.Value ?? throw new ArgumentNullException(nameof(azureAdOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _armClient = new ArmClient(CreateCredential(_azureAdOptions));
         }
 
-        public async Task<List<SubscriptionInfo>> GetSubscriptionsAsync()
+        public async Task<List<SubscriptionInfo>> GetSubscriptionsAsync(TokenCredential? userCredential = null)
         {
             // Try to get from cache first
             try
@@ -76,10 +74,12 @@ namespace AzureDeploymentWeb.Services
             // Cache miss or error - fetch from Azure
             try
             {
+                var armClient = GetArmClient(userCredential);
+                
                 _logger.LogInformation("Fetching subscriptions from Azure API");
                 var subscriptions = new List<SubscriptionInfo>();
                 
-                await foreach (var subscription in _armClient.GetSubscriptions().GetAllAsync())
+                await foreach (var subscription in armClient.GetSubscriptions().GetAllAsync())
                 {
                     subscriptions.Add(new SubscriptionInfo
                     {
@@ -128,7 +128,7 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        public async Task<List<ResourceGroupInfo>> GetResourceGroupsAsync(string subscriptionId)
+        public async Task<List<ResourceGroupInfo>> GetResourceGroupsAsync(string subscriptionId, TokenCredential? userCredential = null)
         {
             if (string.IsNullOrEmpty(subscriptionId))
             {
@@ -160,10 +160,12 @@ namespace AzureDeploymentWeb.Services
             // Cache miss or error - fetch from Azure
             try
             {
+                var armClient = GetArmClient(userCredential);
+                
                 _logger.LogInformation("Fetching resource groups for subscription {SubscriptionId} from Azure API", subscriptionId.SanitizeString() ?? "NULL");
                 var resourceGroups = new List<ResourceGroupInfo>();
                 
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
+                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
                 
                 await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
                 {
@@ -214,7 +216,19 @@ namespace AzureDeploymentWeb.Services
             }
         }
 
-        private static DefaultAzureCredential CreateCredential(AzureAdOptions azureAdOptions)
+        private ArmClient GetArmClient(TokenCredential? userCredential)
+        {
+            // If user credential is provided, use it (user impersonation)
+            if (userCredential != null)
+            {
+                return new ArmClient(userCredential);
+            }
+            
+            // Fallback to managed identity/default credential (for backwards compatibility when auth not configured)
+            return new ArmClient(CreateDefaultCredential(_azureAdOptions));
+        }
+
+        private static DefaultAzureCredential CreateDefaultCredential(AzureAdOptions azureAdOptions)
         {
             var isLocal = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"));
             DefaultAzureCredentialOptions? options = null;

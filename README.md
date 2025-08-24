@@ -1,85 +1,360 @@
-# 🚀 Azure ARM Template Deployment Web
+# 🚀 Azure Service Deployment SaaS
 
-A modern .NET 8 MVC web application that simplifies Azure resource deployment through ARM templates with a beautiful, user-friendly interface.
+A modern, cloud-native SaaS platform for deploying Azure resources through ARM templates with microservices architecture, multi-tenant support, and AI-powered template discovery.
 
-![Homepage](https://github.com/user-attachments/assets/e7ff3081-68ed-4e06-93e3-047380c17e41)
+![SaaS Architecture](docs/images/saas-architecture-diagram.svg)
 
 ## 🌟 What This Repository Contains
 
-This repository provides a complete solution for deploying Azure resources through ARM templates with:
+This repository provides a complete SaaS solution for Azure resource deployment featuring:
 
-- **🎨 Modern Web Interface**: Clean, intuitive UI for uploading and deploying ARM templates
-- **🔐 Azure AD Authentication**: Secure Microsoft Entra ID integration with OAuth 2.0
-- **⚡ Real-time Deployment Tracking**: Live updates using SignalR during deployments
-- **🏗️ Infrastructure as Code**: Complete Azure Bicep templates for the entire infrastructure
-- **🚀 CI/CD Pipeline**: Automated GitHub Actions workflow for seamless deployments
-- **🧪 Comprehensive Testing**: Unit tests and Playwright E2E tests included
+### 🏗️ **Modern SaaS Architecture**
+- **🔬 Microservices**: Domain-driven .NET 8 APIs containerized for Azure Container Apps
+- **⚛️ React SPA Frontend**: Modern web interface with Microsoft Authentication Library (MSAL)
+- **🏢 Multi-Tenant Design**: Secure tenant isolation with Azure Cosmos DB partitioning
+- **🤖 AI-Powered Search**: Azure AI Search for intelligent template discovery
+- **📱 Self-Service Registration**: Microsoft Entra External ID integration
 
-## 🏗️ Architecture & Technical Overview
+### 🎯 **Core Business Capabilities**
+- **📚 Template Library**: Create, store, and manage ARM templates with version control
+- **🔍 Intelligent Search**: Find templates by content using "serverFarmId", resource types, etc.
+- **🖥️ Browser Editor**: Monaco-based ARM template editing (coming soon)
+- **⚡ Real-time Deployments**: Live deployment status with SignalR
+- **💳 Subscription Management**: Built-in billing with mock feature flags
+- **👥 Account Management**: Tenant administration and user permissions
 
-### Application Architecture
-
-![Architecture Diagram](docs/images/architecture-diagram.svg)
-
-The application follows a modern cloud-native architecture with the following components:
-
-- **👤 User Browser**: Modern web interface for ARM template deployment
-- **🚀 .NET 8 MVC Web App**: Core application hosted on Azure App Service
-- **🔐 Microsoft Entra ID**: OAuth 2.0 authentication and authorization
-- **⚡ Redis Cache**: Caches Azure Management API responses for improved performance
-- **📡 Azure SignalR**: Provides real-time deployment status updates to the UI
-- **🔑 Azure Key Vault**: Securely stores application secrets and connection strings
-- **📊 Application Insights**: Telemetry, monitoring, and application performance management
-- **☁️ Azure Resource Manager**: Target for ARM template deployments
-
-### Technology Stack
-- **Frontend**: ASP.NET Core MVC with Bootstrap 5, JavaScript, SignalR
-- **Backend**: .NET 8, Azure SDK for .NET, Microsoft Identity Web
-- **Authentication**: Microsoft Entra ID (Azure AD) with OAuth 2.0
-- **Real-time Communication**: Azure SignalR Service
-- **Infrastructure**: Azure Bicep templates
-- **CI/CD**: GitHub Actions with OIDC authentication
-- **Testing**: XUnit (40 unit tests), Playwright E2E tests
+### ☁️ **Cloud-Native Infrastructure** 
+- **🐳 Containerized Services**: All components run on Azure Container Apps
+- **⚙️ Centralized Configuration**: Azure App Configuration with feature flags
+- **🔐 Secure by Design**: Managed Identity and Azure RBAC integration
+- **📊 Observability**: Application Insights telemetry and monitoring
+- **🏗️ Infrastructure as Code**: Complete Bicep templates for deployment
 
 ## 📁 Project Structure
 
 ```
-📦 Azure-Service-Deployment-Web
-├── 🎯 src/dotnet/AzureDeploymentWeb/     # Main .NET 8 MVC Application
-│   ├── Controllers/                      # MVC Controllers
-│   ├── Views/                           # Razor Views with Bootstrap UI
-│   ├── Services/                        # Azure integration services
-│   ├── Models/                          # Data models and view models
-│   ├── Hubs/                           # SignalR hubs for real-time updates
-│   └── wwwroot/                        # Static files (CSS, JS, images)
-├── 🧪 src/dotnet/AzureDeploymentWeb.Tests/ # Unit Tests (XUnit)
-├── 🏗️ infra/bicep/                      # Infrastructure as Code
-│   ├── main.bicep                       # Main Bicep template
-│   ├── modules/                         # Reusable Bicep modules
-│   └── parameters/                      # Environment-specific parameters
-├── 🎭 tests/playwright/                  # E2E Tests
-│   ├── tests/                          # Playwright test files
-│   ├── fixtures/                       # Test data and helpers
-│   └── playwright.config.ts            # Playwright configuration
-├── 📚 examples/                          # Sample ARM templates
-├── 🚀 .github/workflows/                 # CI/CD Pipeline
-└── 📖 docs/                             # Documentation and images
+📦 Azure-Service-Deployment-SaaS
+├── 🎯 src/microservices/                    # SaaS Microservices Architecture
+│   ├── Services/
+│   │   ├── Identity.Api/                    # User registration & authentication
+│   │   ├── TemplateLibrary.Api/             # ARM template management & AI search
+│   │   ├── Deployment.Api/                  # Azure deployment orchestration
+│   │   ├── Billing.Api/                     # Subscription & usage management
+│   │   └── AccountManagement.Api/           # Tenant & user administration
+│   └── Shared/
+│       ├── AzureDeploymentSaaS.Shared.Contracts/    # Common DTOs & interfaces
+│       └── AzureDeploymentSaaS.Shared.Infrastructure/ # Common utilities
+├── 🌐 src/frontend/                         # React SPA Frontend
+│   ├── src/components/                      # Reusable UI components
+│   ├── src/pages/                           # Application pages
+│   ├── src/services/                        # API service clients
+│   └── Dockerfile                           # Frontend containerization
+├── 🎯 src/dotnet/                           # Original Monolithic App (Legacy)
+│   ├── AzureDeploymentWeb/                  # .NET 8 MVC Application
+│   └── AzureDeploymentWeb.Tests/            # Unit Tests
+├── 🏗️ infra/bicep/                          # Infrastructure as Code
+│   ├── saas-main.bicep                      # Main SaaS infrastructure
+│   └── modules/saas/                        # SaaS-specific Bicep modules
+│       ├── container-apps-environment.bicep # Container Apps environment
+│       ├── container-apps.bicep             # Container Apps deployment
+│       ├── app-configuration.bicep          # Azure App Configuration
+│       └── azure-ai-search.bicep            # Azure AI Search service
+├── 🧪 tests/playwright/                      # E2E Tests
+└── 📖 docs/                                 # Documentation
+    └── ARCHITECTURE_SAAS.md                 # SaaS architecture documentation
 ```
 
-## 🛠️ Application Components
+## 🛠️ Technology Stack
 
-### Core Services
-- **`IAzureDeploymentService`**: Handles ARM template deployments
-- **`IAzureResourceDiscoveryService`**: Discovers Azure subscriptions and resource groups
-- **`DeploymentMonitoringService`**: Background service for tracking deployment status
-- **`DeploymentHub`**: SignalR hub for real-time deployment updates
+### Backend Services
+- **.NET 8 Web APIs**: RESTful microservices with OpenAPI/Swagger
+- **Azure SDK**: Native Azure service integration
+- **Entity Framework Core**: Cosmos DB integration with LINQ
+- **Microsoft Identity Web**: JWT token validation and RBAC
 
-### Key Features
-- **📁 File Upload**: Drag-and-drop ARM templates and parameter files
-- **🔍 Resource Discovery**: Automatic subscription and resource group discovery
-- **📊 Progress Tracking**: Real-time deployment status with detailed logging
-- **🛡️ Security**: Secure file validation and Azure RBAC integration
-- **🎨 Modern UI**: Responsive design with Bootstrap 5 and custom styling
+### Frontend Application  
+- **React 18**: Modern SPA with hooks and functional components
+- **TypeScript**: Type-safe development
+- **Microsoft Authentication Library (MSAL)**: Entra External ID integration
+- **Monaco Editor**: In-browser ARM template editing
+- **Bootstrap 5**: Responsive UI framework
+
+### Azure Platform Services
+- **Azure Container Apps**: Serverless container hosting
+- **Azure Cosmos DB**: Multi-tenant NoSQL database with partition keys
+- **Azure AI Search**: Cognitive search for template discovery
+- **Azure App Configuration**: Centralized configuration and feature flags
+- **Microsoft Entra External ID**: Customer identity and access management
+- **Azure Container Registry**: Private container image storage
+- **Application Insights**: APM and distributed tracing
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- .NET 8 SDK
+- Node.js 18+ & npm
+- Docker Desktop
+- Azure subscription
+- Azure CLI
+
+### 1. Clone and Build
+
+```bash
+git clone https://github.com/christopherhouse/Azure-Service-Deployment-Web.git
+cd Azure-Service-Deployment-Web
+
+# Build microservices
+dotnet restore Azure-Service-Deployment-SaaS.sln
+dotnet build Azure-Service-Deployment-SaaS.sln
+
+# Build frontend
+cd src/frontend
+npm install
+npm run build
+```
+
+### 2. Deploy Infrastructure
+
+```bash
+cd infra/bicep
+
+# Create resource group
+az group create --name rg-azuredeploy-saas-dev --location eastus
+
+# Deploy SaaS infrastructure
+az deployment group create \
+  --resource-group rg-azuredeploy-saas-dev \
+  --template-file saas-main.bicep \
+  --parameters environment=dev
+```
+
+### 3. Configure Authentication
+
+1. **Create Entra External ID Tenant**:
+   - Go to [Azure Portal](https://portal.azure.com) → Microsoft Entra ID → External Identities
+   - Create new External ID tenant for customer registration
+
+2. **Register Applications**:
+   - Register SPA application for frontend
+   - Register API applications for each microservice
+   - Configure redirect URIs and API scopes
+
+3. **Update Configuration**:
+   ```bash
+   # Set frontend environment variables
+   cd src/frontend
+   cp .env.example .env.local
+   # Edit .env.local with your Entra External ID settings
+   ```
+
+### 4. Build and Push Container Images
+
+```bash
+# Build and push to Azure Container Registry
+az acr login --name {your-acr-name}
+
+# Template Library API
+docker build -t {your-acr}.azurecr.io/template-library-api:latest src/microservices/Services/TemplateLibrary.Api
+docker push {your-acr}.azurecr.io/template-library-api:latest
+
+# Frontend
+docker build -t {your-acr}.azurecr.io/frontend:latest src/frontend  
+docker push {your-acr}.azurecr.io/frontend:latest
+```
+
+### 5. Deploy Container Apps
+
+```bash
+# Update container apps with new images
+az containerapp update \
+  --name azuredeploy-saas-dev-template-library-api \
+  --resource-group rg-azuredeploy-saas-dev \
+  --image {your-acr}.azurecr.io/template-library-api:latest
+```
+
+## 🔑 Key Features
+
+### 🏢 Multi-Tenant Template Library
+```typescript
+// Create tenant-scoped template
+const template = await templateLibraryService.createTemplate({
+  name: "Storage Account with CMK",
+  category: "Storage", 
+  templateContent: armTemplateJson,
+  parametersContent: parametersJson,
+  tags: ["storage", "encryption", "cmk"],
+  isPublic: false  // Tenant-private template
+});
+```
+
+### 🔍 AI-Powered Template Search
+```typescript
+// Search templates by content
+const results = await templateLibraryService.searchTemplates(
+  "serverFarmId Microsoft.Web"  // Find web app templates
+);
+```
+
+### 💳 Subscription Management
+```csharp
+// Feature flag for billing
+[FeatureGate("BillingMock")]
+public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequest request)
+{
+    // Real billing implementation
+    return await _billingService.ProcessPaymentAsync(request);
+}
+```
+
+### 👥 Self-Service Registration
+```typescript
+// Users can register with their own identity
+const { instance } = useMsal();
+await instance.loginRedirect({
+  scopes: ["openid", "profile", "email"],
+  prompt: "create"  // Force account creation flow
+});
+```
+
+## 🧪 Testing
+
+### Unit Tests (.NET)
+```bash
+# Run microservices tests
+dotnet test src/microservices/Services/TemplateLibrary.Api.Tests/
+
+# Run with coverage
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+### E2E Tests (Playwright)
+```bash
+cd tests/playwright
+
+# Install dependencies
+npm install
+npx playwright install
+
+# Run against deployed environment
+PLAYWRIGHT_BASE_URL=https://your-frontend.azurecontainerapps.io npm test
+```
+
+### Integration Tests
+```bash
+# Test API endpoints
+cd src/microservices
+dotnet test --filter Category=Integration
+```
+
+## 🏗️ Infrastructure as Code
+
+### SaaS Infrastructure Components
+
+The infrastructure is fully automated using Azure Bicep:
+
+```bash
+# Main SaaS infrastructure
+az deployment group create \
+  --template-file infra/bicep/saas-main.bicep \
+  --parameters @infra/bicep/parameters/saas.dev.bicepparam
+```
+
+**Deployed Resources:**
+- Azure Container Apps Environment with Log Analytics
+- Azure Cosmos DB with multi-tenant containers
+- Azure AI Search service with template indexing
+- Azure App Configuration with feature flags
+- Azure Container Registry for private images
+- Managed Identity for service authentication
+
+### Configuration Management
+
+Feature flags and configuration stored in Azure App Configuration:
+
+```json
+{
+  "BillingMock": true,
+  "TemplateLibrary:MaxTemplatesPerTenant": 1000,
+  "Deployment:MaxConcurrentDeployments": 10,
+  "SearchService:IndexName": "templates-index"
+}
+```
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/deploy-saas.yml
+name: Deploy SaaS Platform
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build microservices
+        run: dotnet build Azure-Service-Deployment-SaaS.sln
+        
+      - name: Build frontend
+        run: |
+          cd src/frontend
+          npm ci && npm run build
+          
+      - name: Build and push containers
+        run: |
+          docker build -t $ACR_NAME/template-library-api:$GITHUB_SHA .
+          docker push $ACR_NAME/template-library-api:$GITHUB_SHA
+          
+      - name: Deploy infrastructure
+        run: |
+          az deployment group create \
+            --template-file infra/bicep/saas-main.bicep \
+            --parameters imageTag=$GITHUB_SHA
+```
+
+## 📊 Monitoring & Observability
+
+- **Application Insights**: Distributed tracing across microservices
+- **Log Analytics**: Centralized logging with correlation IDs
+- **Container Apps Metrics**: Scaling and performance monitoring
+- **Azure Monitor**: Infrastructure health and alerting
+
+## 🔐 Security Best Practices
+
+- 🔑 **Zero Trust**: Managed Identity for all service-to-service communication
+- 🏢 **Multi-Tenant Isolation**: Cosmos DB partition keys and API-level filtering
+- 🛡️ **Authentication**: Microsoft Entra External ID with self-service registration
+- 🔒 **Secrets Management**: Azure App Configuration and Key Vault integration
+- 🌐 **Network Security**: Container Apps with private networking
+- 📝 **Compliance**: Built-in audit logging and data residency
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/saas-enhancement`
+3. Make your changes following the microservices patterns
+4. Add tests for new functionality
+5. Update documentation as needed
+6. Submit a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Documentation
+
+- 📖 [SaaS Architecture Guide](docs/ARCHITECTURE_SAAS.md)
+- 🏗️ [Infrastructure Documentation](infra/bicep/README.md)
+- 🧪 [Testing Guide](tests/README.md)
+- 🔧 [Development Setup](docs/DEVELOPMENT.md)
+
+---
+
+**Transform your ARM template deployments into a modern SaaS experience! 🚀**
 
 ## 🚀 Quick Start Guide
 
